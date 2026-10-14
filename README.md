@@ -6,6 +6,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-PlayStation-lightgrey)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)
 
 > **English:** Brazilian Portuguese fan translation of *Harvest Moon: Back to Nature*
 > (PS1, USA). This repository contains only original tools, documentation and the
@@ -115,6 +116,14 @@ tests/             testes automatizados
 2. [Os diálogos](docs/02-dialogos.md): registros de 8 KB, limites, códigos de controle
 3. [Montando a imagem traduzida](docs/03-montagem.md): gravação no lugar, EDC/ECC,
    prova de conceito
+
+## Licença
+
+As ferramentas, os testes e a documentação deste repositório estão sob a
+[licença MIT](LICENSE).
+
+Os textos da tradução, em `translation/`, não estão cobertos pela licença MIT, por
+serem obra derivada do jogo original.
 
 ## Aviso legal
 
