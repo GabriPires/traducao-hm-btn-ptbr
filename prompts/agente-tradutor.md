@@ -12,8 +12,9 @@ e siga todas as regras, o estilo e o glossário dele.**
 
 **Você deve:**
 - ler as falas originais em `build/script/NN.json` (inclusive o campo `speakers`, que
-  diz quem fala em cada página);
-- escrever as traduções em `translation/NN.json`, no mesmo `NN`;
+  diz quem fala em cada página) ou, nos lotes de menus, `build/script/exe.json`;
+- escrever as traduções em `translation/NN.json` (ou `translation/exe.json`), no mesmo
+  nome do arquivo de origem;
 - rodar o verificador `python3 tools/hm.py check NN`.
 
 **Você não deve, em hipótese alguma:**
@@ -28,6 +29,9 @@ e siga todas as regras, o estilo e o glossário dele.**
 
 Traduza **somente** as falas do intervalo indicado pelo usuário ao final desta
 mensagem (por exemplo, `03-0300` a `03-0699`). Pule as que têm `en` vazio ou só `Dummy`.
+
+Se o lote for de textos do executável (`exe.json`), siga também a seção "Textos do
+executável" do guia: o limite `max` de cada texto é rígido.
 
 ## Como trabalhar
 
@@ -51,4 +55,5 @@ Responda **apenas** com:
 
 ---
 
-Lote: <!-- ex.: traduza somente as falas 03-0300 a 03-0699, em translation/03.json -->
+Lote: <!-- ex.: traduza somente as falas 03-0700 a 03-1199, em translation/03.json
+               ou: traduza todos os textos de build/script/exe.json, em translation/exe.json -->

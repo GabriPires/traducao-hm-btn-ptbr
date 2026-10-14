@@ -127,6 +127,33 @@ en: Will you come with me?{0FFC}{0FFA}\n{0FF6} Yes\n No
 pt: Você vem comigo?{0FFC}{0FFA}\n{0FF6} Sim\n Não
 ```
 
+## Textos do executável (`exe.json`)
+
+Menus, comidas, itens de loja, sementes e mensagens de memory card ficam no executável
+([06-textos-do-executavel.md](06-textos-do-executavel.md)). O original fica em
+`build/script/exe.json` (`{id, max, en}`) e a tradução em `translation/exe.json`
+(`{"exe-800535E6": "Total\nenviado"}`).
+
+- **Nunca mais longo que `max`**, contando cada caractere, espaço, `\n` e código como 1.
+  Mais curto pode: o jogo completa com espaços.
+- Prefira um sinônimo que caiba ("Free" → "Vago"). Se for preciso abreviar, use ponto
+  ("Sem. de nabo") e abrevie **sempre do mesmo jeito**.
+- Opções de menu e títulos alinhados (linhas que começam com espaço) mantêm o mesmo
+  número de linhas e o espaço do começo: `" Yes\n No"` → `" Sim\n ..."`.
+- Nomes de itens e comidas seguem o glossário e devem bater com como aparecem nos
+  diálogos.
+- Mensagens de memory card e sistema: tom neutro e direto ("Salvando no MEMORY CARD").
+- Se um texto não couber de jeito nenhum, deixe-o sem tradução e informe o `id` na
+  resposta final: ele será tratado à parte.
+
+**Não traduzir:**
+
+- a grade de letras da tela de nomes (`exe-800537B2` e `exe-80053888`);
+- os nomes de animais e competidores (todos os `id`s a partir de `exe-800556B6`) e os
+  nomes dos Duendes (Chef, Nappy, Timid, Hoggy, Staid, Bold, Aqua);
+- os sufixos de ordinal `st`, `nd`, `rd`, `th`: traduza cada um como um único espaço
+  (`" "`), porque o português não tem `º` na fonte.
+
 ## Quem fala
 
 O campo `speakers` diz quem fala em cada página. Use para acertar o gênero das
