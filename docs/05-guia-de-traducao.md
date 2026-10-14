@@ -80,12 +80,15 @@ Proibidos: aspas curvas (`“ ” ‘ ’`), travessão (`—`, `–`), `ü`, `�
   | `{400C}` | nome do cão | M ("o {400C}") |
   | `{400D}` | nome da fazenda | "a fazenda {400D}" |
   | `{400E}` | nome do filho | M ("o {400E}") |
-  | `{400F}` | apelido carinhoso que a esposa usa com o jogador ("Honey", "Darling") | vocativo |
+  | `{400F}` | como a esposa chama o jogador: o nome dele, "Lindo" ou "Querido" (escolhido logo depois do casamento) | vocativo |
   | `{4000}`, `{4001}` | valores ou nomes de competidores, conforme a cena | — |
-  | `{401B}`–`{4020}` | nome de um animal da fazenda (cerimônias de despedida) | use "de {401C}", sem artigo |
+  | `{401B}`–`{4020}` | nomes dos animais que morreram (cerimônias de despedida) | sem artigo |
 
-  Nas cerimônias o original escreve `{401E}soul`, sem espaço: é possível que o jogo
-  troque o código por "Nome's " em inglês. **(?)** Está registrado para conferir no jogo.
+  Nas cerimônias o jogo troca o código pelo **nome de cada animal seguido de uma quebra
+  de linha** (no original vinha "Nome's" + quebra, por isso o inglês escreve
+  `{401E}soul`). O texto que vem depois do código já cai na linha de baixo, e o código
+  conta como uma linha só no `check`: `que {401E}descanse em paz…` aparece como "que
+  Mimosa" / "descanse em paz…".
 - **Símbolos** que continuam como código: botões `{006D}` `{006E}` `{006F}` `{0070}`
   (○ × △ □), setas `{0087}`–`{008A}`, notas musicais `{0082}`–`{0085}` e enfeites
   `{0065}` `{0075}` `{0077}` `{0086}`. Mantenha, reposicionando conforme a frase:
@@ -232,7 +235,7 @@ Farmer Fran, Jimmy).
 | Aja Winery | Vinícola Aja |
 | Orchard | Pomar |
 | Mother's Hill | Colina da Mãe |
-| Goddess Spring | Fonte da Deusa |
+| Goddess Spring / Fairy Goddess Fountain | Fonte da Deusa |
 | Fish Pond | Lago dos Peixes |
 | Hen House / Barn / stable | Galinheiro / Estábulo / Estábulo |
 | water mill | moinho d'água |
@@ -243,12 +246,18 @@ Farmer Fran, Jimmy).
 | Rucksack / Basket | Mochila / Cesta |
 | Mayonnaise / Cheese / Yarn Maker | Máquina de Maionese / de Queijo / de Lã |
 | Blue Feather | Pena Azul |
+| Knife / Frying pan / Pot / Mixer / Whisk | Faca / Frigideira / Panela / Liquidificador / Batedor |
+| Rolling pin / Oven / Seasoning set | Rolo de Massa / Forno / Jogo de Temperos |
+| ticket / medal (corrida de cavalos e de cães) | bilhete / medalha |
+| Goddess costume | traje da Deusa |
+| Farmer King (título) | Rei da Fazenda |
+| peddler (Won) | ambulante |
 | Power Berry | Fruta do Poder |
 | Miracle Potion | Poção Milagrosa |
 | Moon Drop / Moondrop (flor) | Gota da Lua |
 | Pink Cat / Magic Red / Toy Flower / Orangecup (flores) | Gato Rosa / Rubra Mágica / Flor-Brinquedo / Taça Laranja |
 | Hothouse / Lumber | Estufa / madeira (no menu: "tábuas") |
-| Honey / Darling (como a esposa chama o jogador) | Amor / Querido |
+| Dear / Honey / Darling (opções de apelido depois do casamento) | Meu bem / Lindo / Querido (as duas últimas são os textos que o jogo põe em `{400F}`: não mude) |
 | Orichalcum / Adamantite / Mystrile | Oricalco / Adamantita / Mistrilo |
 | Lunch Special | prato do dia |
 | Love Potion | Poção do Amor |
@@ -263,6 +272,7 @@ Farmer Fran, Jimmy).
 | Chicken / Cow / Sheep Festival | Festival das Galinhas / das Vacas / das Ovelhas |
 | Horse Race / Local Horse Race / Dog Race | Corrida de Cavalos / Corrida de Cavalos da vila / Corrida de Cães |
 | Music Festival | Festival de Música |
+| (Beach) Opening Day | Abertura da Praia |
 | Harvest Festival | Festival da Colheita |
 | Star Night (Festival) | Noite Estrelada (Festival da Noite Estrelada) |
 | Thanksgiving / Winter Thanksgiving | Ação de Graças / Ação de Graças de Inverno |

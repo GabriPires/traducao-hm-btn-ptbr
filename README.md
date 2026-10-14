@@ -30,7 +30,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Mapeamento dos diálogos (6.011 falas) | ✅ Concluído |
 | Prova de conceito no emulador | ✅ Concluído |
 | Fonte com acentos e cedilha | ✅ Concluído |
-| Tradução dos diálogos | 🔄 717 de 6.011 falas |
+| Tradução dos diálogos | 🔄 1.213 de 6.011 falas |
 | Menus e itens do executável (387 textos) | ✅ Traduzidos (10 itens de loja pendentes) |
 | Textos dos minigames (16 textos) | ✅ Traduzidos |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
