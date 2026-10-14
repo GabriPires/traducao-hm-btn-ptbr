@@ -17,7 +17,7 @@ Também é um projeto de aprendizado de romhacking.
 ## Comandos
 
 ```sh
-python3 tools/hm.py info | cue | extract | dump | build
+python3 tools/hm.py info | cue | extract | dump | check | build
 python3 tools/hm.py find "texto em inglês"
 python3 tools/hm.py peek <subarquivo> <offset>
 python3 -m unittest discover tests
@@ -34,3 +34,5 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - `docs/03-montagem.md`: como o `build` gera a imagem, EDC/ECC, prova de conceito
 - `build/script/NN.json` (local): originais (`id`, `prefix`, `en`) · `translation/NN.json` (git): `{id: pt}`
 - `build` gera `build/HARVESTMOON-PTBR.bin`: grava as falas no lugar e recalcula EDC/ECC só dos setores alterados
+- `tools/hmbtn/rules.py`: regras de uma fala traduzida (códigos, caracteres, linhas, páginas); usadas por `check` e `build`
+- O prompt do agente tradutor fica em `build/prompt-tradutor.md` (local, fora do git)

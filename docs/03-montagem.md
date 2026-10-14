@@ -15,9 +15,17 @@ Fase 2. Comando: `python3 tools/hm.py build`.
    setores que mudaram**, recalculando o EDC/ECC de cada um (`tools/hmbtn/ecc.py`).
 5. Gera o `.cue` ao lado.
 
-Erros que impedem a geração: caractere sem entrada na tabela (por enquanto qualquer
-acento), fala com mais de 1023 valores, `id` inexistente. Linhas com mais de
-`MAX_LINE` caracteres (30, provisório) geram só aviso.
+Antes de gravar, cada fala passa pelas regras de `tools/hmbtn/rules.py`, as mesmas do
+comando `check`. Qualquer erro impede a geração da imagem:
+
+- códigos de controle diferentes do original (ordem ou posição), nomes variáveis ou
+  símbolos faltando, número de páginas diferente;
+- caracteres fora da lista permitida, `...` no lugar de `…`;
+- linha com mais de 30 caracteres visíveis (provisório, até a Fase 3), página com
+  linhas demais, texto com mais de 1000 unidades;
+- caractere sem desenho na fonte. Por enquanto isso inclui qualquer acento, que o
+  `check` já aceita porque a fonte vai ganhá-los na Fase 3;
+- `id` inexistente.
 
 ## Por que recalcular EDC/ECC
 

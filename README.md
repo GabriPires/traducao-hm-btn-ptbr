@@ -75,6 +75,7 @@ Somente a versão americana (NTSC-U), em imagem BIN/CUE de faixa única:
 python3 tools/hm.py info      # confere a imagem e lista os arquivos do disco
 python3 tools/hm.py extract   # extrai os arquivos para build/
 python3 tools/hm.py dump      # exporta os diálogos originais para build/script/
+python3 tools/hm.py check     # confere as traduções contra o original e as regras do jogo
 python3 tools/hm.py build     # gera build/HARVESTMOON-PTBR.bin (+ .cue) com a tradução
 
 python3 -m unittest discover tests
@@ -95,14 +96,17 @@ cópia, para `build/script/`. O repositório guarda só a tradução, em
 }
 ```
 
-Falas sem tradução continuam no idioma original. O comando `build` grava cada fala no
-lugar dela no disco e recalcula os códigos de correção de erro dos setores alterados.
+Falas sem tradução continuam no idioma original. O comando `check` confere cada
+tradução contra o original: códigos de controle, caracteres permitidos, tamanho das
+linhas e das páginas. O `build` aplica as mesmas regras, grava cada fala no lugar dela
+no disco e recalcula os códigos de correção de erro dos setores alterados.
 
 ### Estrutura
 
 ```
 tools/hm.py        linha de comando
-tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto, diálogos
+tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto,
+                   diálogos, regras da tradução
 tables/hmbtn.tbl   tabela de caracteres do jogo
 translation/       a tradução, um JSON por subarquivo
 docs/              documentação técnica

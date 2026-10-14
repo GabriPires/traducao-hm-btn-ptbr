@@ -6,6 +6,7 @@ Uso:
     python3 tools/hm.py cue                  # gera o .cue para abrir a imagem no emulador
     python3 tools/hm.py extract              # extrai tudo para build/
     python3 tools/hm.py dump                 # exporta os diálogos originais para build/script/
+    python3 tools/hm.py check [03 ...]       # confere as traduções contra as regras do jogo
     python3 tools/hm.py build                # aplica translation/*.json numa cópia da imagem
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
@@ -23,7 +24,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import afile, dialog
+from hmbtn import afile, dialog, rules
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.table import Table
 
@@ -34,7 +35,6 @@ TABLE = ROOT / 'tables' / 'hmbtn.tbl'
 SCRIPT = BUILD / 'script'
 TRANSLATION = ROOT / 'translation'
 OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
-MAX_LINE = 30   # provisório, até medirmos a caixa de texto (Fase 3)
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
 
@@ -171,27 +171,108 @@ def cmd_dump(args):
     print(f'OK: {total} falas exportadas')
 
 
+def read_translation_file(path):
+    """Lê um translation/NN.json. Devolve (falas, erros, avisos) sobre o arquivo em si."""
+    errors, warnings = [], []
+
+    def no_duplicates(pairs):
+        seen = {}
+        for key, value in pairs:
+            if key in seen:
+                errors.append(f'id repetido: {key}')
+            seen[key] = value
+        return seen
+
+    try:
+        data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=no_duplicates)
+    except json.JSONDecodeError as error:
+        return {}, [f'JSON inválido na linha {error.lineno}, coluna {error.colno}: {error.msg}'], []
+    if not isinstance(data, dict):
+        return {}, ['o arquivo deve ser um objeto no formato {"id": "texto"}'], []
+    for key, value in data.items():
+        if not re.fullmatch(rf'{re.escape(path.stem)}-\d{{4}}', key):
+            errors.append(f'id inválido ou no arquivo errado: {key}')
+        elif not isinstance(value, str):
+            errors.append(f'{key}: o valor deve ser um texto')
+    if list(data) != sorted(data):
+        warnings.append('as falas não estão em ordem crescente de id')
+    return data, errors, warnings
+
+
 def load_translations():
-    """Lê translation/NN.json, no formato {"02-0117": "texto"}. Textos vazios são ignorados."""
+    """Todas as falas de translation/*.json com texto. Sai com erro se algum arquivo estiver inválido."""
     translations = {}
     for path in sorted(TRANSLATION.glob('*.json')):
-        for entry_id, text in json.loads(path.read_text(encoding='utf-8')).items():
-            if not entry_id.startswith(path.stem + '-'):
-                sys.exit(f'ERRO: {entry_id} está no arquivo errado ({path.name})')
-            if text:
-                translations[entry_id] = text
+        data, errors, _ = read_translation_file(path)
+        if errors:
+            sys.exit(f'ERRO em {path.relative_to(ROOT)}: {errors[0]} (rode: python3 tools/hm.py check)')
+        translations.update({key: text for key, text in data.items() if text})
     return translations
 
 
-def visible_lines(text):
-    """Linhas como aparecem na tela: sem códigos, nome do jogador contando 8 letras."""
-    text = text.replace('{jogador}', 'X' * 8)
-    return [re.sub(r'\{[^}]*\}', '', line) for line in re.split(r'\n|\{0FFC\}\{0FFB\}', text)]
+def allowed_chars(table):
+    """Caracteres que uma tradução pode usar: os da fonte atual mais os acentos planejados."""
+    return {text for text in table.decode_map.values() if len(text) == 1} | rules.PLANNED
+
+
+def load_originals():
+    if not any(SCRIPT.glob('*.json')):
+        sys.exit('Falas originais não encontradas. Rode antes: '
+                 'python3 tools/hm.py extract && python3 tools/hm.py dump')
+    originals = {}
+    for path in sorted(SCRIPT.glob('*.json')):
+        originals.update({e['id']: e for e in json.loads(path.read_text(encoding='utf-8'))})
+    return originals
+
+
+def cmd_check(args):
+    """Confere translation/*.json contra o original e as regras do jogo (não altera nada)."""
+    allowed = allowed_chars(Table(TABLE))
+    originals = load_originals()
+    if args.files:
+        paths = [TRANSLATION / f'{name.removesuffix(".json")}.json' for name in args.files]
+        missing = [p.name for p in paths if not p.exists()]
+        if missing:
+            sys.exit(f'Arquivo(s) não encontrado(s) em translation/: {", ".join(missing)}')
+    else:
+        paths = sorted(TRANSLATION.glob('*.json'))
+
+    checked = with_errors = with_warnings = 0
+    for path in paths:
+        data, file_errors, file_warnings = read_translation_file(path)
+        for message in file_errors:
+            print(f'{path.name}: ERRO: {message}')
+        for message in file_warnings:
+            print(f'{path.name}: aviso: {message}')
+        with_errors += bool(file_errors)
+        for entry_id, text in data.items():
+            if not isinstance(text, str) or not text or entry_id not in originals:
+                if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}', entry_id):
+                    print(f'{entry_id}\n  ERRO: essa fala não existe no jogo')
+                    with_errors += 1
+                continue
+            original = originals[entry_id]
+            errors, warnings = rules.validate(original['prefix'], original['en'], text, allowed)
+            checked += 1
+            with_errors += bool(errors)
+            with_warnings += bool(warnings)
+            if errors or warnings:
+                print(entry_id)
+                for message in errors:
+                    print(f'  ERRO: {message}')
+                for message in warnings:
+                    print(f'  aviso: {message}')
+    print(f'\n{checked} fala(s) verificada(s) em {len(paths)} arquivo(s): '
+          f'{with_errors} com erro, {with_warnings} com aviso')
+    if with_errors:
+        sys.exit(1)
+    print('OK')
 
 
 def cmd_build(args):
     """Aplica translation/*.json numa cópia da imagem: build/HARVESTMOON-PTBR.bin."""
     table = Table(TABLE)
+    allowed = allowed_chars(table)
     translations = load_translations()
     with Disc(args.iso) as disc:
         pack_entry = disc.find('/A_FILE.BIN')
@@ -203,16 +284,18 @@ def cmd_build(args):
     for entry_id, text in sorted(translations.items()):
         sub, index = (int(part) for part in entry_id.split('-'))
         if sub not in dialog.SUBFILES or index >= dialog.record_count(subfiles[sub]):
-            errors.append(f'{entry_id}: não existe')
+            errors.append(f'{entry_id}: essa fala não existe no jogo')
+            continue
+        prefix, original = dialog.decode_record(table, subfiles[sub], index)
+        rule_errors, rule_warnings = rules.validate(prefix, original, text, allowed)
+        errors += [f'{entry_id}: {message}' for message in rule_errors]
+        warnings += [f'{entry_id}: {message}' for message in rule_warnings]
+        if rule_errors:
             continue
         try:
-            prefix, _ = dialog.decode_record(table, subfiles[sub], index)
             dialog.write_text(subfiles[sub], index, table.encode(prefix + text))
         except ValueError as error:
             errors.append(f'{entry_id}: {error}')
-        for line in visible_lines(text):
-            if len(line) > MAX_LINE:
-                warnings.append(f'{entry_id}: linha com {len(line)} caracteres: {line!r}')
     for warning in warnings:
         print(f'  aviso: {warning}')
     if errors:
@@ -251,6 +334,8 @@ def main():
     p.add_argument('text')
     p.add_argument('--limit', type=int, default=20)
     sub.add_parser('dump', help='exporta os diálogos originais para build/script/*.json')
+    p = sub.add_parser('check', help='confere as traduções contra o original e as regras do jogo')
+    p.add_argument('files', nargs='*', help='arquivos de translation/ (ex.: 03); padrão: todos')
     sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
@@ -258,7 +343,7 @@ def main():
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
 
 
 if __name__ == '__main__':

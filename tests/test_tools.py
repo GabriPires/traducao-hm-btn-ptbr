@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import afile, dialog, ecc  # noqa: E402
+from hmbtn import afile, dialog, ecc, rules  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
 
@@ -82,6 +82,64 @@ class EccTest(unittest.TestCase):
                 sector[0x818:] = bytes(len(sector) - 0x818)
                 ecc.encode_mode2_form1(sector)
                 self.assertEqual(bytes(sector), original, f'setor {lba}')
+
+
+class RulesTest(unittest.TestCase):
+    DIALOG = '{0FE4}{0FF7}{0FF4}{0FF5}{0E2E}'
+    EN = "Hello, {jogador}!\nNice day.{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Let's go to the {006D}."
+
+    def setUp(self):
+        table = Table(TABLE)
+        self.allowed = {t for t in table.decode_map.values() if len(t) == 1} | rules.PLANNED
+
+    def errors(self, pt, en=EN, prefix=DIALOG):
+        return rules.validate(prefix, en, pt, self.allowed)[0]
+
+    def test_good_translation(self):
+        pt = 'Olá, {jogador}!\nQue dia bonito.{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Vamos ao {006D}.'
+        self.assertEqual(self.errors(pt), [])
+
+    def test_name_may_move(self):
+        pt = '{jogador}, olá!\nQue dia bonito.{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Vamos ao {006D}.'
+        self.assertEqual(self.errors(pt), [])
+
+    def test_missing_page_and_codes(self):
+        errors = self.errors('Olá, {jogador}! Que dia bonito. Vamos ao {006D}.')
+        self.assertTrue(any('códigos de controle' in e for e in errors))
+        self.assertTrue(any('página(s)' in e for e in errors))
+
+    def test_page_must_start_with_portrait_codes(self):
+        pt = 'Olá, {jogador}!{0FFC}{0FFB}\nVamos{0F65}{0FF7}{0F68} ao {006D}.'
+        self.assertTrue(any('deve começar com' in e for e in self.errors(pt)))
+
+    def test_missing_name_and_symbol(self):
+        errors = self.errors('Olá!{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Vamos.')
+        self.assertTrue(any('nomes variáveis' in e for e in errors))
+        self.assertTrue(any('símbolos' in e for e in errors))
+
+    def test_forbidden_characters(self):
+        pt = 'Olá… {jogador}...\n“Bom” — dia.{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Vamos ao {006D}.'
+        errors = self.errors(pt)
+        self.assertTrue(any('—' in e and '“' in e for e in errors))
+        self.assertTrue(any('...' in e for e in errors))
+
+    def test_line_width_counts_names_as_eight(self):
+        pt = 'Olá, {jogador}! Bom dia, tudo bem?{0FFC}{0FFB}\n{0F65}{0FF7}{0F68}Vamos ao {006D}.'
+        self.assertTrue(any('linha com 33' in e for e in self.errors(pt)))
+
+    def test_dialog_pages_allow_four_lines(self):
+        four = 'a\nb\nc\nd'
+        self.assertEqual(self.errors(four, en='a'), [])
+        self.assertTrue(any('5 linhas' in e for e in self.errors(four + '\ne', en='a')))
+        # fora de diálogos o limite é o número de linhas do original
+        self.assertTrue(any('2 linhas' in e for e in self.errors('a\nb', en='a', prefix='{0FF3}')))
+
+    def test_menu_options_keep_leading_space(self):
+        en = 'Come?{0FFC}{0FFA}\n{0FF6}{0FF4}{0FF5}{0E2F} Yes\n No'
+        good = 'Vem?{0FFC}{0FFA}\n{0FF6}{0FF4}{0FF5}{0E2F} Sim\n Não'
+        bad = 'Vem?{0FFC}{0FFA}\n{0FF6}{0FF4}{0FF5}{0E2F} Sim\nNão'
+        self.assertEqual(self.errors(good, en=en), [])
+        self.assertTrue(any('espaço no início' in e for e in self.errors(bad, en=en)))
 
 
 class TranslationFilesTest(unittest.TestCase):
