@@ -1,69 +1,128 @@
 # Harvest Moon: Back to Nature — Tradução PT-BR
 
-Patch de tradução para português do Brasil de *Harvest Moon: Back to Nature* (PlayStation,
-versão americana), feito do zero. Objetivo: jogável do início ao fim, em emulador.
+Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (PlayStation,
+2000), feita do zero, com ferramentas próprias e documentação aberta.
 
-## Imagem suportada
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Plataforma](https://img.shields.io/badge/plataforma-PlayStation-lightgrey)
 
-Só a versão americana. Confira antes de qualquer coisa:
+> **English:** Brazilian Portuguese fan translation of *Harvest Moon: Back to Nature*
+> (PS1, USA). This repository contains only original tools, documentation and the
+> translation; no game data is distributed.
+
+## Sobre o projeto
+
+- **Tradução completa:** a meta é um jogo jogável do início ao fim em português,
+  incluindo diálogos, menus, itens e gráficos com texto.
+- **Do zero:** tradução própria, sem reaproveitar trabalhos anteriores.
+- **Aberto e documentado:** cada descoberta sobre os formatos do jogo vira um documento
+  em [`docs/`](docs/), para que outros projetos também possam aproveitar.
+- **Ferramentas simples:** Python puro, sem dependências externas, com testes
+  automatizados.
+
+## Progresso
+
+| Etapa | Status |
+|---|---|
+| Ferramentas de extração e remontagem do disco | ✅ Concluído |
+| Mapeamento dos diálogos (6.011 falas) | ✅ Concluído |
+| Prova de conceito no emulador | ✅ Concluído |
+| Fonte com acentos e cedilha | 🔄 Próxima etapa |
+| Tradução dos diálogos | ⏳ 5 de 6.011 falas |
+| Menus, itens e minigames | ⏳ Pendente |
+| Gráficos com texto (título, menus) | ⏳ Pendente |
+| Testes do início ao fim e lançamento | ⏳ Pendente |
+
+## Como jogar
+
+O patch ainda **não foi lançado**. Quando estiver pronto, o processo será:
+
+1. Tenha sua própria cópia do jogo, na versão compatível (abaixo).
+2. Confira o checksum da sua imagem.
+3. Aplique o patch `.xdelta` com uma ferramenta como o
+   [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/) (no navegador) ou o `xdelta3`.
+4. Abra a imagem traduzida no emulador de sua preferência. Os testes são feitos no
+   [DuckStation](https://github.com/stenzek/duckstation).
+
+### Versão compatível
+
+Somente a versão americana (NTSC-U), em imagem BIN/CUE de faixa única:
 
 | | |
 |---|---|
 | Serial | SLUS-01115 |
-| Formato | imagem crua MODE2/2352 (o arquivo se chama `.iso`, mas é um `.bin`) |
+| Formato | MODE2/2352, faixa única |
 | Tamanho | 213.954.384 bytes |
-| SHA-1 | `cb26381fa1336bdd15f07469e59f1143ccf37b03` |
-| MD5 | `424f9fbda58e95f597e39b4bdde239b1` |
 | CRC32 | `b0e8f078` |
+| MD5 | `424f9fbda58e95f597e39b4bdde239b1` |
+| SHA-1 | `cb26381fa1336bdd15f07469e59f1143ccf37b03` |
 
-A imagem do jogo **nunca** entra no repositório, nem o texto original em inglês extraído
-dela: aqui ficam só as ferramentas e a tradução. O resultado final é distribuído como
-patch (`.xdelta`), e quem for jogar aplica o patch na própria cópia.
+## Para desenvolvedores
 
-## Começando
+### Requisitos
 
-Requisitos: Python 3.10+ (só biblioteca padrão por enquanto) e git.
+- Python 3.10 ou mais recente
+- Sua própria imagem do jogo (versão compatível acima)
+
+### Primeiros passos
 
 ```sh
 # coloque sua imagem na raiz do projeto como HARVESTMOON.iso
-# (ou aponte outro caminho com HMBTN_ISO=/caminho/jogo.bin)
+# (ou indique outro caminho com HMBTN_ISO=/caminho/jogo.bin)
 
-python3 tools/hm.py info      # confere o disco e lista os arquivos
-python3 tools/hm.py cue       # cria HARVESTMOON.cue para abrir no emulador
-python3 tools/hm.py extract   # extrai tudo para build/ (≈300 MB)
-python3 tools/hm.py dump      # exporta os diálogos originais para build/script/ (local)
-python3 tools/hm.py build     # aplica translation/*.json -> build/HARVESTMOON-PTBR.bin
+python3 tools/hm.py info      # confere a imagem e lista os arquivos do disco
+python3 tools/hm.py extract   # extrai os arquivos para build/
+python3 tools/hm.py dump      # exporta os diálogos originais para build/script/
+python3 tools/hm.py build     # gera build/HARVESTMOON-PTBR.bin (+ .cue) com a tradução
 
-python3 tools/hm.py find "Good morning"   # onde está essa fala?
-python3 tools/hm.py peek 2 0xEB80A        # decodifica texto a partir de uma posição
-
-python3 -m unittest discover tests        # testes
+python3 -m unittest discover tests
 ```
 
-## Estrutura
+Também há `find` (procura uma fala) e `peek` (decodifica texto numa posição).
+Use `python3 tools/hm.py --help` para ver todos os comandos.
+
+### Como a tradução é organizada
+
+O texto original do jogo **nunca** é versionado: ele é extraído localmente, da sua
+cópia, para `build/script/`. O repositório guarda só a tradução, em
+`translation/NN.json`, ligando cada fala pelo seu identificador:
+
+```json
+{
+  "03-1899": "E entao, o que achou?\nEsta era a fazenda do seu avo…"
+}
+```
+
+Falas sem tradução continuam no idioma original. O comando `build` grava cada fala no
+lugar dela no disco e recalcula os códigos de correção de erro dos setores alterados.
+
+### Estrutura
 
 ```
-tools/hm.py          linha de comando (info, cue, extract, dump, build, find, peek)
-tools/hmbtn/         biblioteca: disco (disc.py), EDC/ECC dos setores (ecc.py), pacote
-                     A_FILE (afile.py), tabela (table.py), registros de diálogo (dialog.py)
-translation/         a tradução: {"id da fala": "texto em português"}, um JSON por subarquivo
-tables/hmbtn.tbl     tabela de caracteres do jogo (valor de 16 bits -> texto)
-docs/                o que já descobrimos sobre o jogo, em ordem
-tests/               testes automatizados
-build/               (ignorado) arquivos extraídos e gerados
+tools/hm.py        linha de comando
+tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto, diálogos
+tables/hmbtn.tbl   tabela de caracteres do jogo
+translation/       a tradução, um JSON por subarquivo
+docs/              documentação técnica
+tests/             testes automatizados
 ```
 
-## Emulador
+### Documentação técnica
 
-Os testes são feitos no [DuckStation](https://github.com/stenzek/duckstation), abrindo o
-`.cue` gerado por `python3 tools/hm.py cue`.
+1. [O disco e o texto](docs/01-disco-e-texto.md): estrutura da imagem, o pacote
+   `A_FILE`, a codificação de 16 bits do texto
+2. [Os diálogos](docs/02-dialogos.md): registros de 8 KB, limites, códigos de controle
+3. [Montando a imagem traduzida](docs/03-montagem.md): gravação no lugar, EDC/ECC,
+   prova de conceito
 
-## Andamento
+## Aviso legal
 
-- [x] **Fase 0 · Setup**: estrutura, leitura do disco, extração, tabela de caracteres, jogo rodando no DuckStation
-- [ ] **Fase 1 · Extração do texto**: diálogos (6011 falas) ✅ · menus, itens e minigames (executável e overlays) ⏳
-- [x] **Fase 2 · Prova de conceito**: 5 falas da abertura traduzidas, aparecendo no emulador
-- [ ] **Fase 3 · Fonte**: acentos e cedilha
-- [ ] **Fase 4 · Tradução**: script inteiro em PT-BR
-- [ ] **Fase 5 · Gráficos**: menus, título e imagens com texto
-- [ ] **Fase 6 · Testes e lançamento**: jogar do início ao fim, gerar o patch
+Este é um projeto de fã, gratuito e sem fins lucrativos, sem qualquer afiliação com
+Natsume Inc., Victor Interactive Software Inc. ou seus sucessores. *Harvest Moon* é
+marca registrada da Natsume Inc.; *Harvest Moon: Back to Nature* © 2000 Natsume Inc. /
+Victor Interactive Software Inc.
+
+Este repositório não contém nem distribui o jogo ou qualquer outro material protegido
+por direitos autorais de terceiros. Para usar o patch, é necessário possuir uma cópia
+original do jogo.
