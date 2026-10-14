@@ -75,6 +75,27 @@ GROUPS = (
      'ids': ('exe-80053DD0', 'comidas'), 'refs': 'receitas', 'sem_referencia': set()},
 )
 
+# Textos que o jogo insere no meio das falas: o apelido {400F} ("Honey", "Darling").
+# Precisam ocupar o espaço inteiro, senão o espaço de enchimento aparece na frase
+# ("Amor !"). O código os acha por posição fixa (0x80054BC0 + base), então não andam.
+EXACT_LENGTH = {'exe-80054396', 'exe-800543A2'}
+
+# Remendos fixos fora dos blocos de texto: (endereço, bytes originais, bytes novos).
+#   0x80049084: o que o jogo cola depois do nome de cada animal nas variáveis
+#   {401B}-{4020} das cerimônias: "'s" + quebra de linha. Em português fica só a quebra.
+PATCHES = (
+    (0x80049084, struct.pack('<3H', 0x0051, 0xFFFE, END), struct.pack('<3H', 0xFFFE, END, END)),
+)
+
+
+def apply_patches(exe):
+    """Grava PATCHES no executável (bytearray), conferindo os bytes originais."""
+    for address, old, new in PATCHES:
+        pos = file_offset(address)
+        if bytes(exe[pos:pos + len(old)]) != old:
+            raise ValueError(f'{address:#010x}: bytes originais diferentes do esperado')
+        exe[pos:pos + len(new)] = new
+
 
 def overlay_segments(subfile_index, data):
     """(id, deslocamento, bytes sem o FFFF) dos textos de um overlay."""
@@ -245,6 +266,10 @@ def plan(exe, subfiles, table, translations, allowed):
             continue
         en = table.decode_exact(raw)
         problems = validate(en, translations[sid], allowed, len(raw) // 2)
+        units = len(CODE.sub('#', translations[sid]))
+        if sid in EXACT_LENGTH and units != len(raw) // 2:
+            problems.append(f'precisa ter exatamente {len(raw) // 2} caracteres (aparece no meio '
+                            f'das falas; o que sobrar vira espaço visível)')
         if problems:
             errors[sid] += problems
             continue

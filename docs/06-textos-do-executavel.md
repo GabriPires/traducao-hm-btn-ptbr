@@ -92,6 +92,18 @@ Detalhe curioso: o código sempre soma ao endereço do texto um valor guardado e
 `0x80054BBC`, que vale zero na versão americana. Deve ser o "deslocamento do idioma" da
 versão europeia (que tinha vários idiomas; daí as letras alemãs na fonte).
 
+## Textos que entram no meio das falas
+
+- **Apelido da esposa** (`{400F}`): `exe-80054396` e `exe-800543A2` ("Honey" e
+  "Darling") são colados dentro das falas. O espaço de enchimento apareceria na frase
+  ("Amor !"), então o `check` exige que a tradução ocupe o tamanho exato
+  (`exetext.EXACT_LENGTH`): ficaram "Lindo" e "Querido". As opções do menu de apelido
+  nas falas (`Meu bem / Lindo / Querido`) precisam usar as mesmas palavras.
+- **Animais nas cerimônias** (`{401B}`–`{4020}`): o jogo cola o texto de `0x80049084`
+  depois de cada nome. Ele fica fora dos blocos de texto, e o `build` o troca por um
+  remendo fixo (`exetext.PATCHES`, que confere os bytes originais antes de gravar):
+  `"'s" + quebra` vira só `quebra`. Só uma instrução do executável lê esse endereço.
+
 ## Pendências
 
 Estes textos não cabem traduzidos e ficam em inglês até as referências deles serem

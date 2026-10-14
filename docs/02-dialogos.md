@@ -65,8 +65,24 @@ Cada fala começa com um **prefixo** de códigos, por exemplo
 | `0FF6` | Prefixo de falas sem retrato, como pensamentos do protagonista **(?)** |
 | `0FFA` | Prefixo de menus de escolha (cada opção numa linha) **(?)** |
 | `{jogador}` (`400A`) | Nome do jogador |
-| `400D` | Nome da fazenda ("{400D} Farm") **(?)** |
-| `4000`, `4001`, `400E`, `400F` | Outros nomes variáveis: cachorro, cavalo, competidores **(?)** |
+| `400B`, `400C`, `400D`, `400E` | Nomes do cavalo, do cão, da fazenda e do filho |
+| `400F` | Como a esposa chama o jogador (ver abaixo) |
+| `401B`–`4020` | Lista dos animais que morreram, um por linha (ver abaixo) |
+| `4000`, `4001` | Valores ou nomes de competidores, conforme a cena **(?)** |
+
+Os nomes `400A`–`4022` são resolvidos por uma tabela de saltos em `0x800100DC` do
+executável (uma entrada por código, a partir de `400A`), como um `switch` em JavaScript.
+O que se sabe pela leitura do código (confirmado no código, não testado no jogo):
+
+- `400F` lê a escolha feita depois do casamento: 0 → o mesmo texto de `{jogador}` (o
+  nome), 1 → "Honey" (`exe-80054396`), 2 → "Darling" (`exe-800543A2`). Os dois
+  textos são achados por posição fixa (`[0x80054BC0]` + `0x8005175C` ou `0x80051768`).
+  Ou seja, a primeira opção do menu ("Dear") faz a esposa usar o nome do jogador.
+- `401B`–`4020` não devolvem um nome: montam uma lista com o nome de cada animal que
+  combina com o código (vacas e ovelhas, ou galinhas), cada um seguido do texto em
+  `0x80049084` ("'s" + quebra de linha no original), e enfiam essa lista no meio da
+  fala, empurrando o resto. A tradução troca esse texto por uma quebra de linha só
+  (`exetext.PATCHES`).
 
 Símbolos ainda sem desenho conhecido, que aparecem como `{XXXX}` e devem ser mantidos:
 

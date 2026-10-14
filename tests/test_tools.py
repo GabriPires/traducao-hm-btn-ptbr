@@ -296,6 +296,20 @@ class ExeGroupsTest(unittest.TestCase):
         _, _, errors, _ = self.apply({'exe-80053604': 'Lista comprida demais'})
         self.assertIn('exe-80053604', errors)
 
+    def test_nickname_must_fill_its_space(self):
+        _, _, errors, _ = self.apply({'exe-80054396': 'Amor'})
+        self.assertIn('exe-80054396', errors)
+        _, _, errors, _ = self.apply({'exe-80054396': 'Lindo'})
+        self.assertEqual(dict(errors), {})
+
+    def test_animal_name_suffix_patch(self):
+        exe = bytearray(self.exe)
+        self.assertEqual(self.text_at(exe, 0x80049084), "'s\n")
+        exetext.apply_patches(exe)
+        self.assertEqual(self.text_at(exe, 0x80049084), '\n')
+        with self.assertRaises(ValueError):
+            exetext.apply_patches(exe)      # só grava sobre os bytes originais
+
 
 class TranslationFilesTest(unittest.TestCase):
     """translation/ vai para um repositório público: só {id: texto em português}."""

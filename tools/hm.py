@@ -376,6 +376,10 @@ def apply_exe(iso, subfiles, table, allowed, translations, errors, warnings):
     for target, pos, data in fixes:
         buffer = new if target == 'exe' else subfiles[target]
         buffer[pos:pos + len(data)] = data
+    try:
+        exetext.apply_patches(new)
+    except ValueError as error:
+        errors.append(f'remendo do executável: {error}')
     return {'original': original, 'new': new}, entry
 
 
