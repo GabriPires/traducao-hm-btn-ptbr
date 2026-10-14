@@ -5,6 +5,8 @@ Uso:
     python3 tools/hm.py info                 # informações do disco e do A_FILE
     python3 tools/hm.py cue                  # gera o .cue para abrir a imagem no emulador
     python3 tools/hm.py extract              # extrai tudo para build/
+    python3 tools/hm.py dump                 # exporta os diálogos originais para build/script/
+    python3 tools/hm.py build                # aplica translation/*.json numa cópia da imagem
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
 
@@ -13,19 +15,26 @@ A imagem original é só lida, nunca alterada.
 
 import argparse
 import hashlib
+import json
 import os
+import re
+import shutil
 import struct
 import sys
 from pathlib import Path
 
-from hmbtn import afile
-from hmbtn.disc import Disc
+from hmbtn import afile, dialog
+from hmbtn.disc import Disc, patch_form1
 from hmbtn.table import Table
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / 'build'
 AFILE_DIR = BUILD / 'afile'
 TABLE = ROOT / 'tables' / 'hmbtn.tbl'
+SCRIPT = BUILD / 'script'
+TRANSLATION = ROOT / 'translation'
+OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
+MAX_LINE = 30   # provisório, até medirmos a caixa de texto (Fase 3)
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
 
@@ -50,13 +59,16 @@ def cmd_info(args):
         print(f'{i:3d}  0x{offsets[i]:08X}  {offsets[i + 1] - offsets[i]:10d}')
 
 
-def cmd_cue(args):
-    iso = Path(args.iso)
-    cue = iso.with_suffix('.cue')
-    cue.write_text(f'FILE "{iso.name}" BINARY\n'
+def write_cue(image):
+    cue = Path(image).with_suffix('.cue')
+    cue.write_text(f'FILE "{Path(image).name}" BINARY\n'
                    '  TRACK 01 MODE2/2352\n'
                    '    INDEX 01 00:00:00\n')
-    print(f'Criado {cue}')
+    return cue
+
+
+def cmd_cue(args):
+    print(f'Criado {write_cue(args.iso)}')
 
 
 def cmd_extract(args):
@@ -137,6 +149,88 @@ def cmd_find(args):
         print('Nada encontrado.')
 
 
+def cmd_dump(args):
+    """Exporta os diálogos originais para build/script/NN.json (fora do git)."""
+    table = Table(TABLE)
+    subfiles = load_subfiles()
+    SCRIPT.mkdir(parents=True, exist_ok=True)
+    total = 0
+    for sub in dialog.SUBFILES:
+        data = subfiles[sub]
+        entries = []
+        for index in range(dialog.record_count(data)):
+            prefix, text = dialog.decode_record(table, data, index)
+            # garantia de que nada se perde: codificar de volta tem que dar os mesmos bytes
+            if table.encode(prefix + text) != dialog.read_text(data, index):
+                sys.exit(f'ERRO: registro {sub:02d}-{index:04d} não sobrevive a decode/encode')
+            entries.append({'id': f'{sub:02d}-{index:04d}', 'prefix': prefix, 'en': text})
+        path = SCRIPT / f'{sub:02d}.json'
+        path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        total += len(entries)
+        print(f'  {path.relative_to(ROOT)}: {len(entries)} falas')
+    print(f'OK: {total} falas exportadas')
+
+
+def load_translations():
+    """Lê translation/NN.json, no formato {"02-0117": "texto"}. Textos vazios são ignorados."""
+    translations = {}
+    for path in sorted(TRANSLATION.glob('*.json')):
+        for entry_id, text in json.loads(path.read_text(encoding='utf-8')).items():
+            if not entry_id.startswith(path.stem + '-'):
+                sys.exit(f'ERRO: {entry_id} está no arquivo errado ({path.name})')
+            if text:
+                translations[entry_id] = text
+    return translations
+
+
+def visible_lines(text):
+    """Linhas como aparecem na tela: sem códigos, nome do jogador contando 8 letras."""
+    text = text.replace('{jogador}', 'X' * 8)
+    return [re.sub(r'\{[^}]*\}', '', line) for line in re.split(r'\n|\{0FFC\}\{0FFB\}', text)]
+
+
+def cmd_build(args):
+    """Aplica translation/*.json numa cópia da imagem: build/HARVESTMOON-PTBR.bin."""
+    table = Table(TABLE)
+    translations = load_translations()
+    with Disc(args.iso) as disc:
+        pack_entry = disc.find('/A_FILE.BIN')
+        pack = disc.read_file(pack_entry)
+        hdt = disc.read_file(disc.find('/A_FILE.HDT'))
+    subfiles = [bytearray(data) for data in afile.split(pack, afile.parse_hdt(hdt))]
+
+    errors, warnings = [], []
+    for entry_id, text in sorted(translations.items()):
+        sub, index = (int(part) for part in entry_id.split('-'))
+        if sub not in dialog.SUBFILES or index >= dialog.record_count(subfiles[sub]):
+            errors.append(f'{entry_id}: não existe')
+            continue
+        try:
+            prefix, _ = dialog.decode_record(table, subfiles[sub], index)
+            dialog.write_text(subfiles[sub], index, table.encode(prefix + text))
+        except ValueError as error:
+            errors.append(f'{entry_id}: {error}')
+        for line in visible_lines(text):
+            if len(line) > MAX_LINE:
+                warnings.append(f'{entry_id}: linha com {len(line)} caracteres: {line!r}')
+    for warning in warnings:
+        print(f'  aviso: {warning}')
+    if errors:
+        for error in errors:
+            print(f'  ERRO: {error}')
+        sys.exit(f'{len(errors)} erro(s), imagem não gerada')
+
+    new_hdt, new_pack = afile.build(subfiles)
+    if new_hdt != hdt:
+        sys.exit('ERRO: o tamanho dos subarquivos mudou')
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(args.iso, OUTPUT)
+    changed = patch_form1(OUTPUT, pack_entry.lba, pack, new_pack)
+    write_cue(OUTPUT)
+    print(f'OK: {len(translations)} falas traduzidas, {changed} setores alterados')
+    print(f'Imagem: {OUTPUT.relative_to(ROOT)} (+ .cue)')
+
+
 def cmd_peek(args):
     table = Table(TABLE)
     data = load_subfiles()[args.subfile]
@@ -156,13 +250,15 @@ def main():
     p = sub.add_parser('find', help='procura um texto (em inglês) nos subarquivos')
     p.add_argument('text')
     p.add_argument('--limit', type=int, default=20)
+    sub.add_parser('dump', help='exporta os diálogos originais para build/script/*.json')
+    sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'peek': cmd_peek}[args.command](args)
+     'find': cmd_find, 'dump': cmd_dump, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
 
 
 if __name__ == '__main__':

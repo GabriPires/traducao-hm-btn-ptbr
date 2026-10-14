@@ -17,6 +17,8 @@ Sobre os setores existe um sistema de arquivos ISO9660, igual ao de um CD de PC.
 import struct
 from dataclasses import dataclass
 
+from . import ecc
+
 SECTOR_SIZE = 2352
 DATA_OFFSET = 24          # sync(12) + header(4) + subheader(8)
 FORM1_SIZE = 2048
@@ -119,6 +121,34 @@ class Disc:
             yield DiscFile(path, elba, esize, is_dir)
             if is_dir:
                 yield from self._walk(elba, esize, path + '/')
+
+
+def patch_form1(path, lba, old, new):
+    """Grava em uma imagem os blocos de 2048 bytes de `new` que diferem de `old`.
+
+    `old` e `new` são o conteúdo de um arquivo que começa no setor `lba` e mantém o
+    tamanho. Só os setores alterados são reescritos, com EDC/ECC recalculados.
+    Devolve quantos setores mudaram.
+    """
+    if len(old) != len(new):
+        raise ValueError('patch_form1 não muda o tamanho do arquivo')
+    changed = 0
+    with open(path, 'r+b') as f:
+        for block in range(0, len(new), FORM1_SIZE):
+            data = new[block:block + FORM1_SIZE]
+            if data == old[block:block + FORM1_SIZE]:
+                continue
+            position = (lba + block // FORM1_SIZE) * SECTOR_SIZE
+            f.seek(position)
+            sector = bytearray(f.read(SECTOR_SIZE))
+            if sector[18] & SUBMODE_FORM2:
+                raise ValueError(f'setor {lba + block // FORM1_SIZE} é Form 2')
+            sector[DATA_OFFSET:DATA_OFFSET + len(data)] = data
+            ecc.encode_mode2_form1(sector)
+            f.seek(position)
+            f.write(sector)
+            changed += 1
+    return changed
 
 
 def _extent(record):

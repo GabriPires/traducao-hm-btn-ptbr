@@ -82,12 +82,17 @@
 0066=:
 # 0069: hífen, usado em pares como travessão
 0069=-
+006A=(
+006B=)
 006C=.
 # 007F: provável reticências como um único caractere
 007F=…
 008C=,
 008D='
 008E="
+# --- Símbolos ---
+# 0076: coração entre nomes de casais
+0076=♥
 # --- Controle ---
 0FFD=\s
 400A={jogador}

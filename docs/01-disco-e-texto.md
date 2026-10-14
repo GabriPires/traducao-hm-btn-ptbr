@@ -38,8 +38,7 @@ remontá-los reproduz o original byte a byte.
 | # | Tamanho | Conteúdo |
 |---|---|---|
 | 00, 01, 07 | 61 MB, 1,6 MB, 62 KB | (?) gráficos/cenários: cabeçalho parecido entre si, a investigar |
-| **02–05** | 15, 16, 5, 11 MB | **Diálogos** (milhares de ocorrências de " the ", " you") |
-| 06 | 448 KB | Algum texto também (menus/tutoriais?) **(?)** |
+| **02–06** | 15, 16, 5, 11 MB, 448 KB | **Diálogos**, em registros de 8 KB ([02-dialogos.md](02-dialogos.md)) |
 | 09 | 5,7 MB | Banco de sons (começa com `pBAV`, formato VAB da Sony) |
 | 10, 11, 15, 17, 19, 21, 23, 25, 27, 28 | pequenos | (?) Código extra carregado sob demanda ("overlays"): começam com um ID e endereços `0x800Bxxxx` da RAM do PS1 |
 | 14, 18, 20, 22, 24, 26 | pequenos | (?) Dados que acompanham os overlays (todos começam com `0E 00 00 00`) |
@@ -63,7 +62,8 @@ Cada caractere ocupa 2 bytes (little-endian). A tabela completa está em
 | `0020–0039` | a–z |
 | `0040–0049` | 0–9 |
 | `0050–0056` | Contrações num caractere só: `'t 's 'l 'd 'm 'r 'v` |
-| `0062 0063 0066 0069 006C 007F 008C 008D 008E` | `? ! : - . … , ' "` (`?` e `…` são deduções fortes) |
+| `0062 0063 0066 0069 006A 006B 006C 007F 008C 008D 008E` | `? ! : - ( ) . … , ' "` (`?` e `…` são deduções fortes) |
+| `0076` | `♥` (entre nomes de casais) |
 | `0FFD` | espaço |
 | `400A` | nome do jogador (o jogo troca pelo nome digitado) |
 | `FFFE` | quebra de linha |
@@ -74,26 +74,7 @@ desenho) mostram que a fonte é desenhada sob medida para o inglês. Na Fase 3 v
 precisar criar `á à â ã é ê í ó ô õ ú ç` e as maiúsculas, aproveitando por exemplo os
 espaços das contrações, que não fazem sentido em português.
 
-### Estrutura de uma fala (em investigação)
+### Estrutura de uma fala
 
-Formato de uma fala (texto ilustrativo):
+Resolvido na Fase 1: veja [02-dialogos.md](02-dialogos.md).
 
-```
-{0FE4}{0FF7}{0FF4}{0FF5}{0E2E}Hello there.\nThis is an example.{fim}
-```
-
-- As falas aparecem separadas por blocos de zeros (preenchimento). Ocorrências repetidas
-  de uma mesma fala começam em posições que diferem exatamente 0xC000:
-  sinal de que o texto fica em **blocos de tamanho fixo** **(?)**.
-- Antes do texto vêm códigos `0Fxx`/`0Exx`. Hipótese: quem fala, retrato/expressão e
-  tipo de caixa **(?)**. Fase 1.
-- Outros códigos vistos: `0FF1`, `0FF3`, `0FF6`, `0FFB`, `0FFC` (perto de menus e
-  opções), `0065`, `006A`, `006B`, `006D`, `006E`, `0071` (perto de "button": provavelmente
-  ícones dos botões do controle).
-
-## Próximas perguntas (Fase 1)
-
-1. Como o jogo acha cada fala? Existe uma tabela de ponteiros/índice dentro dos
-   subarquivos 02–05, ou dentro dos overlays?
-2. Qual o tamanho máximo de cada bloco ou fala? Dá para crescer o texto?
-3. O que significam os códigos do cabeçalho de cada fala?
