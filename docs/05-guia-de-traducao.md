@@ -70,10 +70,22 @@ Proibidos: aspas curvas (`“ ” ‘ ’`), travessão (`—`, `–`), `ü`, `�
 - **Controle** (`{0Exx}`, `{0Fxx}`): páginas, retratos, menus. Todos presentes, **na
   mesma ordem e na mesma posição** (começo de página, fim de página, antes de opções).
   Copie letra por letra.
-- **Nomes variáveis**: `{jogador}` (nome do jogador), `{400D}` (fazenda), `{400B}`,
-  `{400E}`, `{400F}`, `{4000}`, `{4001}` (animais, competidores...). O jogo troca pelo
-  nome. Todos devem continuar presentes, mas podem mudar de lugar na frase:
-  `{jogador}'s farm` → `a fazenda de {jogador}`.
+- **Nomes variáveis**: o jogo troca pelo nome. Todos devem continuar presentes, mas
+  podem mudar de lugar na frase: `{jogador}'s farm` → `a fazenda de {jogador}`.
+
+  | Código | O que vira | Gênero |
+  |---|---|---|
+  | `{jogador}` | nome do jogador | M |
+  | `{400B}` | nome do cavalo | M ("o {400B}") |
+  | `{400C}` | nome do cão | M ("o {400C}") |
+  | `{400D}` | nome da fazenda | "a fazenda {400D}" |
+  | `{400E}` | nome do filho | M ("o {400E}") |
+  | `{400F}` | apelido carinhoso que a esposa usa com o jogador ("Honey", "Darling") | vocativo |
+  | `{4000}`, `{4001}` | valores ou nomes de competidores, conforme a cena | — |
+  | `{401B}`–`{4020}` | nome de um animal da fazenda (cerimônias de despedida) | use "de {401C}", sem artigo |
+
+  Nas cerimônias o original escreve `{401E}soul`, sem espaço: é possível que o jogo
+  troque o código por "Nome's " em inglês. **(?)** Está registrado para conferir no jogo.
 - **Símbolos** que continuam como código: botões `{006D}` `{006E}` `{006F}` `{0070}`
   (○ × △ □), setas `{0087}`–`{008A}`, notas musicais `{0082}`–`{0085}` e enfeites
   `{0065}` `{0075}` `{0077}` `{0086}`. Mantenha, reposicionando conforme a frase:
@@ -146,7 +158,8 @@ cada código e conferida pelas falas em que os personagens se apresentam.
   "da Elli e do Doutor", "Sou a Mary".
 - Mantenha tiques de fala e onomatopeias inventadas (o "budum" de um personagem).
   Interjeições: Wow → Uau, Ouch → Ai, Hmm → Hum, Ahem (pigarro) → Hum, hum (não use
-  "Aham", que em português significa "sim"), Waaa (choro) → Buááá, sob → snif.
+  "Aham" para pigarro: em português ele significa "sim", e é a tradução certa de
+  "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac.
 - Falas iguais em inglês recebem traduções iguais, salvo quando o contexto pede outra.
 - Horários no padrão brasileiro: `6PM` → `18h`; `8:00` pode ficar. Moeda: `500G`.
   Datas: `the 22nd of Spring` → `dia 22 da Primavera`.
@@ -202,6 +215,11 @@ Farmer Fran, Jimmy).
 | Moon Drop (flor) | Gota da Lua |
 | Orichalcum / Adamantite / Mystrile | Oricalco / Adamantita / Mistrilo |
 | Lunch Special | prato do dia |
+| Love Potion | Poção do Amor |
+| Relaxation tea / tea party (dos Duendes) | Chá relaxante / chá da tarde |
+| Hot Spring | Fonte Termal |
+| King (peixe) / Fisher King (título) | Peixe Rei / Rei da Pesca |
+| Top Breeder (título) | Criador de Elite |
 | Flower Festival | Festival das Flores |
 | Goddess Festival | Festival da Deusa |
 | Cooking Festival | Festival de Culinária |
