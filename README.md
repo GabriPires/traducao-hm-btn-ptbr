@@ -55,7 +55,7 @@ Os testes são feitos no [DuckStation](https://github.com/stenzek/duckstation), 
 
 ## Andamento
 
-- [ ] **Fase 0 · Setup**: estrutura, leitura do disco, extração, tabela de caracteres ✅ · emuladores rodando o jogo ⏳
+- [x] **Fase 0 · Setup**: estrutura, leitura do disco, extração, tabela de caracteres, jogo rodando no DuckStation
 - [ ] **Fase 1 · Extração do texto**: entender ponteiros e blocos, exportar o script
 - [ ] **Fase 2 · Prova de conceito**: alterar uma fala, remontar o disco e ver no emulador
 - [ ] **Fase 3 · Fonte**: acentos e cedilha

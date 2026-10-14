@@ -21,6 +21,8 @@ python3 tools/hm.py peek <subarquivo> <offset>
 python3 -m unittest discover tests
 ```
 
+Emulador: DuckStation, abrindo o `.cue` da imagem.
+
 ## Onde está o quê
 
 - `tools/hmbtn/disc.py`: setores 2352/ISO9660 · `afile.py`: A_FILE.BIN/HDT · `table.py`: tabela de texto
