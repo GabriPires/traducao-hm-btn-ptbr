@@ -62,7 +62,7 @@ Os testes são feitos no [DuckStation](https://github.com/stenzek/duckstation), 
 
 - [x] **Fase 0 · Setup**: estrutura, leitura do disco, extração, tabela de caracteres, jogo rodando no DuckStation
 - [ ] **Fase 1 · Extração do texto**: diálogos (6011 falas) ✅ · menus, itens e minigames (executável e overlays) ⏳
-- [ ] **Fase 2 · Prova de conceito**: alterar uma fala, remontar o disco e ver no emulador
+- [x] **Fase 2 · Prova de conceito**: 5 falas da abertura traduzidas, aparecendo no emulador
 - [ ] **Fase 3 · Fonte**: acentos e cedilha
 - [ ] **Fase 4 · Tradução**: script inteiro em PT-BR
 - [ ] **Fase 5 · Gráficos**: menus, título e imagens com texto

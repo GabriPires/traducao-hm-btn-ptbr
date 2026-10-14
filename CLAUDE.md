@@ -30,5 +30,6 @@ Emulador: DuckStation, abrindo o `.cue` da imagem.
 - `tables/hmbtn.tbl`: tabela de caracteres
 - `docs/01-disco-e-texto.md`: estrutura do disco, subarquivos, codificação do texto
 - `docs/02-dialogos.md`: registros de 8 KB das falas, limites, códigos de controle, formato do script
+- `docs/03-montagem.md`: como o `build` gera a imagem, EDC/ECC, prova de conceito
 - `build/script/NN.json` (local): originais (`id`, `prefix`, `en`) · `translation/NN.json` (git): `{id: pt}`
 - `build` gera `build/HARVESTMOON-PTBR.bin`: grava as falas no lugar e recalcula EDC/ECC só dos setores alterados

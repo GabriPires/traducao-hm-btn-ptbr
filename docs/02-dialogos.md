@@ -35,8 +35,8 @@ Todos os 6011 registros têm um único FFFF no setor de texto e nada depois dele
 
 Como cada fala tem seu espaço reservado, o texto traduzido é gravado **no mesmo
 lugar**. Nada muda de posição, então nenhum ponteiro precisa ser corrigido.
-Pressupomos que o jogo calcula a posição pelo número do registro **(?)**. A Fase 2
-confirma isso na prática, trocando uma fala e vendo o resultado no emulador.
+Confirmado na Fase 2: trocamos falas no lugar e o jogo mostrou o texto novo sem
+problemas ([03-montagem.md](03-montagem.md)).
 
 ### Limites
 
