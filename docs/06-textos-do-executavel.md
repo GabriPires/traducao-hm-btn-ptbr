@@ -66,8 +66,45 @@ Exemplos do menu de pausa:
 | `Satisfactory` | 12 | `Satisfatório` |
 | `Free` | 4 | `Vago` (não cabe "Livre") |
 
-Se um texto importante não couber de jeito nenhum, a saída é mapear as referências
-dele e movê-lo para outro lugar. Fica para quando aparecer o caso.
+## Grupos reorganizados: quando o texto precisa crescer
+
+Não existe espaço livre comprovado no executável: as áreas zeradas são buffers que o
+código usa, e a memória logo depois do fim do executável também é usada. Por isso, quando
+um texto não cabe, ele cresce **pegando espaço dos vizinhos**, num grupo reorganizado
+(`exetext.GROUPS`, aplicado por `exetext.plan`, que o `check` e o `build` usam):
+
+- os textos do grupo são regravados um depois do outro; o primeiro nunca sai do lugar;
+- cada texto que anda tem as referências conhecidas corrigidas (instrução `addiu` nos
+  overlays ou entradas da tabela de receitas);
+- o grupo termina exatamente onde terminava e mantém o mesmo número de textos, então
+  quem conta terminadores continua achando o texto certo;
+- **rede de segurança:** quando possível, o começo antigo de um texto que andou cai no
+  `FFFF` do anterior, e uma referência desconhecida mostra texto vazio em vez de lixo.
+
+| Grupo | Para quê |
+|---|---|
+| `" Yes\n No"` + ordinal `st` | `" Sim\n Não"` na caixa de confirmação, usando o espaço do `st` (que fica vazio). Uma referência aponta para o meio do texto, direto no "No": ela passa a ler "Não" |
+| List, Help, Days left | "Lista", "Ajuda", "Faltam" no menu da fazenda (overlay 11) |
+| `"Yes\nNo"` + Diary | "Sim/Não" nos diários; "Diary {4001}" vira "Jogo {4001}" (overlay 15) |
+| No + 65 comidas | "Não" na configuração e nomes completos das comidas. A **tabela de receitas** do executável (entradas de 32 bytes em `0x40B40`–`0x4175F`, nome no fim de cada entrada) é a única referência aos nomes de comida |
+
+Detalhe curioso: o código sempre soma ao endereço do texto um valor guardado em
+`0x80054BBC`, que vale zero na versão americana. Deve ser o "deslocamento do idioma" da
+versão europeia (que tinha vários idiomas; daí as letras alemãs na fonte).
+
+## Pendências
+
+Estes textos não cabem traduzidos e ficam em inglês até as referências deles serem
+mapeadas (as lojas usam alguma estrutura que a análise estática não encontrou; o caminho
+é um ponto de parada de leitura no emulador, com a loja aberta):
+
+`Wine`, `Brush`, `Milker`, `Milk`, `Snowcone`, `Salad` (cardápio da Pousada), `Buy cow`,
+`Buy sheep`, `Sell cow`, `Sell sheep`.
+
+Também ficam em inglês, de propósito: termos técnicos (`ON`, `OFF`, `Stereo`, `Mono`,
+`Analog`, `Odds`), nomes próprios (Duendes, galinhas, competidores, animais) e a grade de
+letras da tela de nomes. Abreviações usadas por falta de espaço: "Açúc.", "Gelad.",
+"Ferram.", "Ingred.", "Utensíl.", "Medal.", "Sem." (sementes), "Máq." (máquinas).
 
 ## Regras conferidas pelo `check`
 

@@ -238,6 +238,65 @@ class ExeTextTest(unittest.TestCase):
         self.assertTrue(exetext.validate('Slot {4000}', 'Entrada', self.allowed, 20))
 
 
+@unittest.skipUnless(ISO.exists(), 'imagem do jogo ausente')
+class ExeGroupsTest(unittest.TestCase):
+    """Grupos reorganizados do executável, testados sobre o executável de verdade."""
+
+    @classmethod
+    def setUpClass(cls):
+        with Disc(ISO) as disc:
+            cls.exe = disc.read_file(disc.find('/SLUS_011.15'))
+            pack = disc.read_file(disc.find('/A_FILE.BIN'))
+            hdt = disc.read_file(disc.find('/A_FILE.HDT'))
+        cls.subfiles = [bytearray(d) for d in afile.split(pack, afile.parse_hdt(hdt))]
+        cls.table = Table(TABLE)
+        cls.allowed = {t for t in cls.table.decode_map.values() if len(t) == 1}
+
+    def apply(self, translations):
+        writes, fixes, errors, warnings = exetext.plan(self.exe, self.subfiles, self.table, translations, self.allowed)
+        exe = bytearray(self.exe)
+        for at, data in writes:
+            exe[at:at + len(data)] = data
+        return exe, fixes, errors, warnings
+
+    def text_at(self, exe, address):
+        at = exetext.file_offset(address)
+        end = at
+        while struct.unpack_from('<H', exe, end)[0] != 0xFFFF:
+            end += 2
+        return self.table.decode(bytes(exe[at:end]))
+
+    def count_terminators(self, exe):
+        a, b = exetext.BLOCKS[0]
+        return sum(1 for p in range(exetext.file_offset(a), exetext.file_offset(b) + 2, 2)
+                   if struct.unpack_from('<H', exe, p)[0] == 0xFFFF)
+
+    def test_yes_no_takes_the_space_of_ordinal(self):
+        exe, fixes, errors, _ = self.apply({'exe-8005175C': ' Sim\n Não', 'exe-8005176E': ' '})
+        self.assertEqual(dict(errors), {})
+        self.assertEqual(self.text_at(exe, 0x8005175C), ' Sim\n Não')
+        self.assertEqual(self.text_at(exe, 0x80051768), 'Não')     # referência interna
+        self.assertEqual(self.text_at(exe, 0x8005176E), '')        # começo antigo do "st"
+        self.assertEqual(self.count_terminators(exe), self.count_terminators(self.exe))
+
+    def test_ordinal_must_stay_blank(self):
+        _, _, errors, _ = self.apply({'exe-8005175C': ' Sim\n Não', 'exe-8005176E': 'x'})
+        self.assertIn('exe-8005176E', errors)
+
+    def test_moved_text_gets_its_reference_fixed(self):
+        exe, fixes, errors, _ = self.apply({'exe-80053604': 'Lista', 'exe-8005360E': 'Ajuda',
+                                            'exe-80053618': 'Faltam'})
+        self.assertEqual(dict(errors), {})
+        fixed = {(target, pos): data for target, pos, data in fixes}
+        word = struct.unpack('<I', fixed[(11, 0x45544)])[0]
+        self.assertEqual(0x80050000 + (word & 0xFFFF), 0x80053610)
+        self.assertEqual(self.text_at(exe, 0x80053610), 'Ajuda')
+
+    def test_group_overflow_is_an_error(self):
+        _, _, errors, _ = self.apply({'exe-80053604': 'Lista comprida demais'})
+        self.assertIn('exe-80053604', errors)
+
+
 class TranslationFilesTest(unittest.TestCase):
     """translation/ vai para um repositório público: só {id: texto em português}."""
 

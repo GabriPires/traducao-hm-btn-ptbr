@@ -270,6 +270,14 @@ def cmd_check(args):
     else:
         paths = sorted(TRANSLATION.glob('*.json'))
 
+    exe_report = ({}, {})
+    if any(p.stem == 'exe' for p in paths):
+        exe_data, _, _ = read_translation_file(TRANSLATION / 'exe.json')
+        subfiles = [bytearray(data) for data in load_subfiles()]
+        _, _, exe_errors, exe_warnings = exetext.plan(
+            (BUILD / 'disc' / 'SLUS_011.15').read_bytes(), subfiles, Table(TABLE),
+            {k: v for k, v in exe_data.items() if isinstance(v, str) and v}, allowed)
+        exe_report = (exe_errors, exe_warnings)
     checked = with_errors = with_warnings = 0
     for path in paths:
         data, file_errors, file_warnings = read_translation_file(path)
@@ -285,7 +293,9 @@ def cmd_check(args):
                     with_errors += 1
                 continue
             original = originals[entry_id]
-            if entry_id.startswith(('exe-', 'ov')):
+            if entry_id.startswith('exe-'):
+                errors, warnings = exe_report[0].get(entry_id, []), exe_report[1].get(entry_id, [])
+            elif entry_id.startswith('ov'):
                 errors, warnings = exetext.validate(original['en'], text, allowed, original['max']), []
             else:
                 errors, warnings = rules.validate(original['prefix'], original['en'], text, allowed)
@@ -346,27 +356,26 @@ def cmd_font(args):
     print(f'Pacote da fonte: {len(package)} de {font.PACKAGE_LIMIT} bytes')
 
 
-def apply_exe(iso, table, allowed, translations, errors):
-    """Grava no lugar as traduções dos textos do executável. Devolve (bytes, entrada no disco)."""
+def apply_exe(iso, subfiles, table, allowed, translations, errors, warnings):
+    """Grava as traduções do executável (no lugar ou em grupos reorganizados).
+
+    Corrige também as referências que ficam nos overlays (subarquivos). Devolve
+    ({'original', 'new'}, entrada do executável no disco).
+    """
     with Disc(iso) as disc:
         entry = disc.find('/SLUS_011.15')
         original = disc.read_file(entry)
     new = bytearray(original)
-    segments = {exetext.entry_id(address): (address, raw) for address, raw in exetext.segments(original)}
-    for entry_id, text in sorted(translations.items()):
-        if entry_id not in segments:
-            errors.append(f'{entry_id}: esse texto não existe no executável')
-            continue
-        address, raw = segments[entry_id]
-        en = table.decode_exact(raw)
-        problems = exetext.validate(en, text, allowed, len(raw) // 2)
-        if problems:
-            errors += [f'{entry_id}: {message}' for message in problems]
-            continue
-        try:
-            exetext.write(new, address, table.encode(text), len(raw))
-        except ValueError as error:
-            errors.append(str(error))
+    writes, fixes, problems, notes = exetext.plan(original, subfiles, table, translations, allowed)
+    for entry_id, messages in sorted(problems.items()):
+        errors += [f'{entry_id}: {message}' for message in messages]
+    for entry_id, messages in sorted(notes.items()):
+        warnings += [f'{entry_id}: {message}' for message in messages]
+    for at, data in writes:
+        new[at:at + len(data)] = data
+    for target, pos, data in fixes:
+        buffer = new if target == 'exe' else subfiles[target]
+        buffer[pos:pos + len(data)] = data
     return {'original': original, 'new': new}, entry
 
 
@@ -406,7 +415,7 @@ def cmd_build(args):
     overlay_translations = {k: v for k, v in translations.items() if k.startswith('ov')}
     for entry_id in list(exe_translations) + list(overlay_translations):
         del translations[entry_id]
-    exe, exe_entry = apply_exe(args.iso, table, allowed, exe_translations, errors)
+    exe, exe_entry = apply_exe(args.iso, subfiles, table, allowed, exe_translations, errors, warnings)
     apply_overlays(subfiles, table, allowed, overlay_translations, errors)
     for entry_id, text in sorted(translations.items()):
         sub, index = (int(part) for part in entry_id.split('-'))

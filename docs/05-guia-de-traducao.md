@@ -237,15 +237,18 @@ Farmer Fran, Jimmy).
 | Hen House / Barn / stable | Galinheiro / Estábulo / Estábulo |
 | water mill | moinho d'água |
 | Shipping Bin / Bin | Caixa de Envio / Caixa |
-| Fodder / Chicken Feed / Fish Food | Forragem / Ração de galinha / Ração de peixe |
+| Fodder / Chicken Feed / Fish Food | Feno / Ração de galinha / Ração de peixe |
 | Ax / Hoe / Sickle / Hammer / Watering Can | Machado / Enxada / Foice / Martelo / Regador |
-| Fishing Rod / Milker / Brush / Clippers | Vara de Pesca / Ordenhadeira / Escova / Tosquiadeira |
+| Fishing Rod / Milker / Brush / Clippers | Vara de Pesca / Ordenhadeira / Escova / Tesoura |
 | Rucksack / Basket | Mochila / Cesta |
 | Mayonnaise / Cheese / Yarn Maker | Máquina de Maionese / de Queijo / de Lã |
 | Blue Feather | Pena Azul |
 | Power Berry | Fruta do Poder |
 | Miracle Potion | Poção Milagrosa |
-| Moon Drop (flor) | Gota da Lua |
+| Moon Drop / Moondrop (flor) | Gota da Lua |
+| Pink Cat / Magic Red / Toy Flower / Orangecup (flores) | Gato Rosa / Rubra Mágica / Flor-Brinquedo / Taça Laranja |
+| Hothouse / Lumber | Estufa / madeira (no menu: "tábuas") |
+| Honey / Darling (como a esposa chama o jogador) | Amor / Querido |
 | Orichalcum / Adamantite / Mystrile | Oricalco / Adamantita / Mistrilo |
 | Lunch Special | prato do dia |
 | Love Potion | Poção do Amor |
@@ -265,6 +268,72 @@ Farmer Fran, Jimmy).
 | Thanksgiving / Winter Thanksgiving | Ação de Graças / Ação de Graças de Inverno |
 | Fireworks Display | Queima de Fogos |
 | New Year's (Party) | Ano-Novo (Festa de Ano-Novo) |
+
+### Comidas (como aparecem nos menus)
+
+As descrições de itens (subarquivo 05) começam com o nome do item na primeira linha:
+use **exatamente** o nome do menu. Comidas que não estão na tabela ficam iguais
+(Curry, Ketchup, Cheesecake, Sushi, Sashimi, Chirashi sushi, Pizza, Cookie).
+
+| Inglês | Português |
+|---|---|
+| Mayonnaise S | Maionese P |
+| Mayonnaise M | Maionese M |
+| Mayonnaise L | Maionese G |
+| Mayonnaise XL | Maionese GG |
+| Salad | Salada |
+| Stew | Ensopado |
+| Miso soup | Missoshiru |
+| Stir fry | Refogado |
+| Fried rice | Arroz frito |
+| Veggie pancake | Panqueca |
+| Sandwich | Sanduíche |
+| Fruit juice | Suco de fruta |
+| Fruit latte | Vitamina |
+| Vegetable juice | Suco verde |
+| Veggie latte | Vitamina verde |
+| Mixed juice | Suco misto |
+| Mixed latte | Vitamina mista |
+| Pickled turnips | Nabo em conserva |
+| Fries | Fritas |
+| Pickles | Picles |
+| Strawberry jam | Doce de morango |
+| Strawberry milk | Leite de morango |
+| Tomato juice | Suco de tomate |
+| Popcorn | Pipoca |
+| Pumpkin pudding | Pudim de abóbora |
+| Happy eggplant | Berinjela feliz |
+| Sweet potato | Batata-doce |
+| Roasted potatoes | Batata assada |
+| Greens | Verduras |
+| Scrambled eggs | Ovos mexidos |
+| Omelet | Omelete |
+| Rice omelet | Omelete de arroz |
+| Boiled egg | Ovo cozido |
+| Hot milk | Leite quente |
+| Butter | Manteiga |
+| Cheese fondue | Fondue |
+| Apple pie | Torta de maçã |
+| Apple jam | Doce de maçã |
+| Bamboo rice | Arroz de bambu |
+| Grape jam | Doce de uva |
+| Mushroom rice | Arroz de shitake |
+| Truffle rice | Arroz trufado |
+| Jam bun | Sonho |
+| Dinner roll | Pãozinho |
+| Raisin bread | Pão de passas |
+| Grilled fish | Peixe assado |
+| Noodles | Lámen |
+| Curry noodles | Lámen de curry |
+| Tempura noodles | Lámen tempurá |
+| Fried noodles | Yakisoba |
+| Chocolate cookie | Cookie de cacau |
+| Tempura | Tempurá |
+| Ice cream | Sorvete |
+| Cake | Bolo |
+| Chocolate cake | Bolo de cacau |
+| Relaxation tea | Chá relaxante |
+| Food fiasco | Gororoba |
 
 Termo novo que não está aqui: traduza pelo sentido, use **sempre a mesma tradução** e
 peça para incluí-lo no glossário na revisão do lote.
