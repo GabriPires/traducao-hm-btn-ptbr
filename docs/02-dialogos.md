@@ -57,7 +57,7 @@ Cada fala começa com um **prefixo** de códigos, por exemplo
 | Código | Significado |
 |---|---|
 | `{0FFC}{0FFB}` | Espera o botão e começa página nova. `0FFC` = esperar, `0FFB` = limpar a caixa |
-| `{0Fxx}{0FF7}{0Fyy}` | Aparece no começo de páginas. Hipótese: troca do retrato/expressão `xx` para `yy` **(?)** |
+| `{0Fxx}{0FF7}…` | No começo da página: `0Fxx` é o **retrato de quem fala** (cada personagem tem uma faixa de códigos, uma por expressão; ver [`tables/personagens.tsv`](../tables/personagens.tsv)). O código depois de `0FF7`, quando existe, é outro retrato da cena **(?)** |
 | `0FF4`, `0FF5` | Quase sempre juntos no prefixo: abrir a janela? **(?)** |
 | `0E2A`–`0E2F` | Último código do prefixo: tipo ou posição da caixa? **(?)** |
 | `0FF1` | Começa os programas de TV e textos "de tela cheia" **(?)** |
@@ -81,6 +81,16 @@ Símbolos ainda sem desenho conhecido, que aparecem como `{XXXX}` e devem ser ma
 
 Também existem 9 falas em que o jogo escreveu `'` + `s` como dois caracteres, em vez do
 caractere único `'s`. Nelas o apóstrofo aparece como `{008D}` para preservar os bytes.
+
+## Quem fala
+
+Cada registro com retrato traz a imagem do personagem (80×80, 256 cores, comprimida
+com o mesmo RLE da fonte, [04-fonte.md](04-fonte.md)). Renderizando o retrato de cada
+um dos 231 códigos foi possível dizer de quem é cada um, e as falas em que os
+personagens se apresentam confirmaram a tabela. O resultado está em
+[`tables/personagens.tsv`](../tables/personagens.tsv), e o `dump` acrescenta a cada
+fala o campo `speakers`, com quem fala em cada página
+([05-guia-de-traducao.md](05-guia-de-traducao.md)).
 
 ## Original e tradução ficam separados
 

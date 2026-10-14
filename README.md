@@ -97,7 +97,8 @@ cópia, para `build/script/`. O repositório guarda só a tradução, em
 }
 ```
 
-Falas sem tradução continuam no idioma original. O comando `check` confere cada
+Quem traduz segue o [guia de tradução](docs/05-guia-de-traducao.md). Falas sem
+tradução continuam no idioma original. O comando `check` confere cada
 tradução contra o original: códigos de controle, caracteres permitidos, tamanho das
 linhas e das páginas. O `build` aplica as mesmas regras, grava cada fala no lugar dela
 no disco e recalcula os códigos de correção de erro dos setores alterados.
@@ -109,7 +110,9 @@ tools/hm.py        linha de comando
 tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto,
                    diálogos, regras da tradução, fonte e acentos
 tables/hmbtn.tbl   tabela de caracteres do jogo
+tables/personagens.tsv  quem é cada retrato (personagem e gênero)
 translation/       a tradução, um JSON por subarquivo
+prompts/           instruções para agentes de IA que ajudam na tradução
 docs/              documentação técnica
 tests/             testes automatizados
 ```
@@ -123,6 +126,7 @@ tests/             testes automatizados
    prova de conceito
 4. [A fonte e os acentos](docs/04-fonte.md): onde a fonte fica, a compressão RLE, as
    letras acentuadas e a medida da caixa de diálogo
+5. [Guia de tradução](docs/05-guia-de-traducao.md): regras, estilo, quem fala e glossário
 
 ## Licença
 

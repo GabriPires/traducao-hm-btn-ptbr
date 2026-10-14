@@ -27,12 +27,14 @@ from pathlib import Path
 
 from hmbtn import accents, afile, dialog, font, rules
 from hmbtn.disc import Disc, patch_form1
+from hmbtn.speakers import Speakers
 from hmbtn.table import Table
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / 'build'
 AFILE_DIR = BUILD / 'afile'
 TABLE = ROOT / 'tables' / 'hmbtn.tbl'
+SPEAKERS = ROOT / 'tables' / 'personagens.tsv'
 SCRIPT = BUILD / 'script'
 TRANSLATION = ROOT / 'translation'
 OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
@@ -152,8 +154,12 @@ def cmd_find(args):
 
 
 def cmd_dump(args):
-    """Exporta os diálogos originais para build/script/NN.json (fora do git)."""
+    """Exporta os diálogos originais para build/script/NN.json (fora do git).
+
+    Cada fala leva também `speakers`: quem fala em cada página, na ordem das páginas.
+    """
     table = Table(TABLE)
+    speakers = Speakers(SPEAKERS)
     subfiles = load_subfiles()
     SCRIPT.mkdir(parents=True, exist_ok=True)
     total = 0
@@ -165,7 +171,8 @@ def cmd_dump(args):
             # garantia de que nada se perde: codificar de volta tem que dar os mesmos bytes
             if table.encode(prefix + text) != dialog.read_text(data, index):
                 sys.exit(f'ERRO: registro {sub:02d}-{index:04d} não sobrevive a decode/encode')
-            entries.append({'id': f'{sub:02d}-{index:04d}', 'prefix': prefix, 'en': text})
+            entries.append({'id': f'{sub:02d}-{index:04d}', 'prefix': prefix,
+                            'speakers': speakers.per_page(prefix, text), 'en': text})
         path = SCRIPT / f'{sub:02d}.json'
         path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         total += len(entries)

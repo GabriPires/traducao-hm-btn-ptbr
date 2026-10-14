@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / 'tools'))
 
 from hmbtn import accents, afile, dialog, ecc, font, rules  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
+from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
 
 TABLE = ROOT / 'tables' / 'hmbtn.tbl'
@@ -185,6 +186,29 @@ class FontTest(unittest.TestCase):
         glyph = accents.build(base, 'acute', {'drop': (2, 6)})
         self.assertEqual(len(glyph), 12)
         self.assertEqual(glyph[11], [0] * 8)
+
+
+class SpeakersTest(unittest.TestCase):
+    def setUp(self):
+        self.speakers = Speakers(ROOT / 'tables' / 'personagens.tsv')
+
+    def test_table_is_consistent(self):
+        ranges = sorted(self.speakers.ranges)
+        for (start, end, name, gender), following in zip(ranges, ranges[1:] + [None]):
+            self.assertLessEqual(start, end, name)
+            self.assertIn(gender, ('F', 'M'), name)
+            if following:
+                self.assertLess(end, following[0], f'{name} se sobrepõe a {following[2]}')
+
+    def test_pages(self):
+        # Barley fala, depois a May, e por fim o menu de respostas do jogador
+        prefix = '{0F8D}{0FF7}{0FF4}{0FF5}{0E2F}'
+        text = 'a{0FFC}{0FFB}\n{0F8B}{0FF7}{0F8D}b{0FFC}{0FFB}\nc{0FFC}{0FFA}\n{0FF6} Sim\n Não'
+        self.assertEqual(self.speakers.per_page(prefix, text),
+                         ['Barley (M)', 'May (F)', 'May (F)', 'opções do jogador'])
+
+    def test_no_portrait(self):
+        self.assertEqual(self.speakers.per_page('{0FF6}', 'pensamento'), ['sem retrato'])
 
 
 class TranslationFilesTest(unittest.TestCase):

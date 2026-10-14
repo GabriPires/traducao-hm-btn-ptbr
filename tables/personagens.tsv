@@ -1,0 +1,57 @@
+# Quem fala: códigos de retrato -> personagem e gênero gramatical (F/M).
+# Numa fala, o código logo antes de {0FF7} no começo da página é o retrato de quem fala.
+# Cada personagem tem uma faixa de códigos (expressões diferentes do rosto).
+# Identificado pelo retrato de cada código e confirmado pelas falas (docs/05-guia-de-traducao.md).
+# início	fim	personagem	gênero	observação
+0EDE	0EDF	Kai	M	roupa de casamento
+0EE0	0EE0	Rick	M	roupa de casamento
+0EE1	0EE1	Doutor	M	roupa de casamento
+0EE2	0EE2	Gray	M	roupa de casamento
+0EE3	0EE5	Popuri	F	coroa de flores / noiva
+0EE6	0EE8	Elli	F	coroa de flores / noiva
+0EE9	0EEC	Mary	F	coroa de flores / noiva
+0EED	0EEF	Ann	F	coroa de flores / noiva
+0EF0	0EF2	Karen	F	coroa de flores / noiva
+0EF3	0EF3	Kappa	M
+0EF4	0EF8	Won	M	mercador
+0EFA	0EFD	Timid	M	Duende da Colheita verde
+0EFE	0F02	Nappy	M	Duende da Colheita laranja
+0F03	0F07	Aqua	M	Duende da Colheita azul-claro
+0F08	0F0C	Bold	M	Duende da Colheita roxo
+0F0D	0F11	Hoggy	M	Duende da Colheita amarelo
+0F12	0F16	Staid	M	Duende da Colheita azul
+0F1C	0F20	filho do jogador	M	bebê / criança
+0F21	0F27	Stu	M	irmão da Elli
+0F28	0F2C	Deusa da Colheita	F
+0F2D	0F31	Greg	M	pescador
+0F33	0F36	Louis	M
+0F37	0F3C	Gourmet	M	jurado do Festival de Culinária
+0F3D	0F41	Kano	M	fotógrafo
+0F42	0F46	Harris	M	policial, filho do prefeito
+0F47	0F4B	Chef	M	Duende da Colheita vermelho
+0F4C	0F50	Zack	M	comprador
+0F51	0F57	Kai	M
+0F59	0F5D	Gotz	M	lenhador
+0F5E	0F62	Ellen	F	avó da Elli
+0F63	0F67	Manna	F	vinícola, esposa do Duke
+0F68	0F6D	Duke	M	vinícola
+0F6E	0F76	Popuri	F
+0F77	0F7D	Rick	M
+0F7E	0F82	Lillia	F	mãe da Popuri e do Rick
+0F83	0F87	Thomas	M	prefeito
+0F88	0F8C	May	F	neta do Barley
+0F8D	0F91	Barley	M	Rancho Yodel
+0F92	0F9B	Mary	F	Biblioteca
+0F9C	0FA0	Anna	F	mãe da Mary
+0FA1	0FA5	Basil	M	botânico, pai da Mary
+0FA6	0FAC	Cliff	M
+0FAD	0FB1	Carter	M	padre
+0FB2	0FBA	Elli	F	Clínica
+0FBB	0FC1	Doutor	M	Clínica
+0FC2	0FCA	Ann	F	Pousada
+0FCB	0FCF	Doug	M	Pousada, pai da Ann
+0FD0	0FD7	Gray	M	Ferraria
+0FD8	0FDC	Saibara	M	Ferraria, avô do Gray
+0FDD	0FE4	Karen	F	Supermercado
+0FE5	0FE9	Sasha	F	mãe da Karen
+0FEA	0FEF	Jeff	M	Supermercado, pai da Karen
