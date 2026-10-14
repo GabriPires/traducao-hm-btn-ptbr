@@ -243,6 +243,8 @@ Farmer Fran, Jimmy).
 | Memory Card | MEMORY CARD, no masculino ("o MEMORY CARD", "Salvando no MEMORY CARD") |
 | Fodder / Chicken Feed / Fish Food | Feno / Ração de galinha / Ração de peixe |
 | Ax / Hoe / Sickle / Hammer / Watering Can | Machado / Enxada / Foice / Martelo / Regador |
+| Copper / Silver / Golden / Mystrile (ferramenta melhorada) | de Cobre / de Prata / de Ouro / de Mistrilo ("Foice de Cobre") |
+| Cursed / Blessed / Mythic (ferramenta) | Amaldiçoado / Abençoado / Mítico, concordando ("Foice Amaldiçoada") |
 | Fishing Rod / Milker / Brush / Clippers | Vara de Pesca / Ordenhadeira / Escova / Tesoura |
 | Rucksack / Basket | Mochila / Cesta |
 | Mayonnaise / Cheese / Yarn Maker | Máquina de Maionese / de Queijo / de Lã |
@@ -283,7 +285,9 @@ Farmer Fran, Jimmy).
 ### Comidas (como aparecem nos menus)
 
 As descrições de itens (subarquivo 05) começam com o nome do item na primeira linha:
-use **exatamente** o nome do menu. Comidas que não estão na tabela ficam iguais
+use **exatamente** o nome do menu. Os nomes que já aparecem em menus e lojas estão em
+`translation/exe.json`; quando lá o nome foi abreviado por falta de espaço ("Sem.
+batata"), na descrição escreva por extenso ("Sementes de batata"). Comidas que não estão na tabela ficam iguais
 (Curry, Ketchup, Cheesecake, Sushi, Sashimi, Chirashi sushi, Pizza, Cookie).
 
 | Inglês | Português |
