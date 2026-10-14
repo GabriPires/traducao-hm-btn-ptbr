@@ -240,6 +240,7 @@ Farmer Fran, Jimmy).
 | Hen House / Barn / stable | Galinheiro / Estábulo / Estábulo |
 | water mill | moinho d'água |
 | Shipping Bin / Bin | Caixa de Envio / Caixa |
+| Memory Card | MEMORY CARD, no masculino ("o MEMORY CARD", "Salvando no MEMORY CARD") |
 | Fodder / Chicken Feed / Fish Food | Feno / Ração de galinha / Ração de peixe |
 | Ax / Hoe / Sickle / Hammer / Watering Can | Machado / Enxada / Foice / Martelo / Regador |
 | Fishing Rod / Milker / Brush / Clippers | Vara de Pesca / Ordenhadeira / Escova / Tesoura |
