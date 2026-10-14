@@ -30,8 +30,9 @@ e siga todas as regras, o estilo e o glossário dele.**
 Traduza **somente** as falas do intervalo indicado pelo usuário ao final desta
 mensagem (por exemplo, `03-0300` a `03-0699`). Pule as que têm `en` vazio ou só `Dummy`.
 
-Se o lote for de textos do executável (`exe.json`), siga também a seção "Textos do
-executável" do guia: o limite `max` de cada texto é rígido.
+Se o lote for de textos do executável ou dos minigames (`exe.json`, `overlays.json`),
+siga também a seção "Textos do executável" do guia: o limite `max` de cada texto é
+rígido.
 
 ## Como trabalhar
 
@@ -56,4 +57,5 @@ Responda **apenas** com:
 ---
 
 Lote: <!-- ex.: traduza somente as falas 03-0700 a 03-1199, em translation/03.json
-               ou: traduza todos os textos de build/script/exe.json, em translation/exe.json -->
+               ou: traduza todos os textos de build/script/exe.json, em translation/exe.json
+               ou: traduza todos os textos de build/script/overlays.json, em translation/overlays.json -->

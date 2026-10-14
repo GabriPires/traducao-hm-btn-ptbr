@@ -146,6 +146,12 @@ Menus, comidas, itens de loja, sementes e mensagens de memory card ficam no exec
 - Se um texto não couber de jeito nenhum, deixe-o sem tradução e informe o `id` na
   resposta final: ele será tratado à parte.
 
+- Espaços **no meio** de um texto marcam onde o jogo desenha um número
+  (`"You can win      medals"`): mantenha o vão do mesmo tamanho e na mesma posição.
+
+Os textos dos minigames (`build/script/overlays.json` → `translation/overlays.json`,
+ids `ovNN-...`) seguem exatamente as mesmas regras.
+
 **Não traduzir:**
 
 - a grade de letras da tela de nomes (`exe-800537B2` e `exe-80053888`);

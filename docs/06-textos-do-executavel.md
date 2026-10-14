@@ -1,4 +1,4 @@
-# 06 · Textos do executável
+# 06 · Textos do executável e dos minigames
 
 Menus, comidas, itens de loja, sementes, mensagens de memory card e PocketStation, a
 tela de criação do personagem e nomes de animais não estão nos registros de diálogo:
@@ -82,3 +82,21 @@ dele e movê-lo para outro lugar. Fica para quando aparecer o caso.
 - original: `build/script/exe.json` (local), entradas `{id, max, en}`, com `id` no
   formato `exe-ENDEREÇO` (ex.: `exe-800535E6`);
 - tradução: `translation/exe.json`, `{"exe-800535E6": "Total\nenviado"}`.
+
+## Textos dos minigames (overlays)
+
+Alguns minigames carregam código próprio, em subarquivos do `A_FILE` (os overlays), com
+uns poucos textos soltos. São **16 textos** traduzíveis, listados em
+`exetext.OVERLAY_STRINGS` e tratados com a mesma regra (no lugar, sem crescer):
+
+| Subarquivo | Conteúdo |
+|---|---|
+| 11 | pergunta se quer subir a escada e sair da mina |
+| 17 | apostas da corrida de cavalos ("Odds", "Tickets", "You can win … medals") |
+| 21 | aviso do minigame de arremesso |
+| 23 | competidores da corrida no formato "Fazenda X's nome" |
+| 25 | aviso de que todos estão esperando |
+
+Ficam de fora os nomes próprios de competidores do subarquivo 19 e os nomes das moças
+no 11. Original em `build/script/overlays.json`, tradução em `translation/overlays.json`,
+com ids `ovNN-DESLOCAMENTO` (ex.: `ov17-0367A`).

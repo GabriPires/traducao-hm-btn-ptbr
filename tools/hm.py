@@ -188,7 +188,18 @@ def cmd_dump(args):
     path = SCRIPT / 'exe.json'
     path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(f'  {path.relative_to(ROOT)}: {len(entries)} textos do executável')
-    print(f'OK: {total} falas e {len(entries)} textos do executável exportados')
+    overlay_entries = []
+    for sub in sorted(exetext.OVERLAY_STRINGS):
+        for entry_id, _, raw in exetext.overlay_segments(sub, subfiles[sub]):
+            text = table.decode_exact(raw)
+            if table.encode(text) != raw:
+                sys.exit(f'ERRO: {entry_id} não sobrevive a decode/encode')
+            overlay_entries.append({'id': entry_id, 'max': len(raw) // 2, 'en': text})
+    path = SCRIPT / 'overlays.json'
+    path.write_text(json.dumps(overlay_entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(f'  {path.relative_to(ROOT)}: {len(overlay_entries)} textos dos minigames')
+    print(f'OK: {total} falas, {len(entries)} textos do executável e '
+          f'{len(overlay_entries)} dos minigames exportados')
 
 
 def read_translation_file(path):
@@ -210,7 +221,8 @@ def read_translation_file(path):
     if not isinstance(data, dict):
         return {}, ['o arquivo deve ser um objeto no formato {"id": "texto"}'], []
     for key, value in data.items():
-        pattern = r'exe-[0-9A-F]{8}' if path.stem == 'exe' else rf'{re.escape(path.stem)}-\d{{4}}'
+        pattern = {'exe': r'exe-[0-9A-F]{8}', 'overlays': r'ov\d\d-[0-9A-F]{5}'}.get(
+            path.stem, rf'{re.escape(path.stem)}-\d{{4}}')
         if not re.fullmatch(pattern, key):
             errors.append(f'id inválido ou no arquivo errado: {key}')
         elif not isinstance(value, str):
@@ -268,12 +280,12 @@ def cmd_check(args):
         with_errors += bool(file_errors)
         for entry_id, text in data.items():
             if not isinstance(text, str) or not text or entry_id not in originals:
-                if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}|exe-[0-9A-F]{8}', entry_id):
+                if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}|exe-[0-9A-F]{8}|ov\d\d-[0-9A-F]{5}', entry_id):
                     print(f'{entry_id}\n  ERRO: essa fala não existe no jogo')
                     with_errors += 1
                 continue
             original = originals[entry_id]
-            if entry_id.startswith('exe-'):
+            if entry_id.startswith(('exe-', 'ov')):
                 errors, warnings = exetext.validate(original['en'], text, allowed, original['max']), []
             else:
                 errors, warnings = rules.validate(original['prefix'], original['en'], text, allowed)
@@ -358,6 +370,24 @@ def apply_exe(iso, table, allowed, translations, errors):
     return {'original': original, 'new': new}, entry
 
 
+def apply_overlays(subfiles, table, allowed, translations, errors):
+    """Grava no lugar as traduções dos textos dos minigames, dentro dos subarquivos."""
+    segments = {}
+    for sub in exetext.OVERLAY_STRINGS:
+        for entry_id, offset, raw in exetext.overlay_segments(sub, subfiles[sub]):
+            segments[entry_id] = (sub, offset, raw)
+    for entry_id, text in sorted(translations.items()):
+        if entry_id not in segments:
+            errors.append(f'{entry_id}: esse texto não existe nos minigames')
+            continue
+        sub, offset, raw = segments[entry_id]
+        problems = exetext.validate(table.decode_exact(raw), text, allowed, len(raw) // 2)
+        if problems:
+            errors += [f'{entry_id}: {message}' for message in problems]
+            continue
+        exetext.write_at(subfiles[sub], offset, table.encode(text), len(raw))
+
+
 def cmd_build(args):
     """Aplica translation/*.json numa cópia da imagem: build/HARVESTMOON-PTBR.bin."""
     table = Table(TABLE)
@@ -373,9 +403,11 @@ def cmd_build(args):
 
     errors, warnings = [], []
     exe_translations = {k: v for k, v in translations.items() if k.startswith('exe-')}
-    for entry_id in exe_translations:
+    overlay_translations = {k: v for k, v in translations.items() if k.startswith('ov')}
+    for entry_id in list(exe_translations) + list(overlay_translations):
         del translations[entry_id]
     exe, exe_entry = apply_exe(args.iso, table, allowed, exe_translations, errors)
+    apply_overlays(subfiles, table, allowed, overlay_translations, errors)
     for entry_id, text in sorted(translations.items()):
         sub, index = (int(part) for part in entry_id.split('-'))
         if sub not in dialog.SUBFILES or index >= dialog.record_count(subfiles[sub]):
@@ -406,8 +438,8 @@ def cmd_build(args):
     changed = patch_form1(OUTPUT, pack_entry.lba, pack, new_pack)
     changed += patch_form1(OUTPUT, exe_entry.lba, exe['original'], bytes(exe['new']))
     write_cue(OUTPUT)
-    print(f'OK: {len(translations)} falas e {len(exe_translations)} textos do executável traduzidos, '
-          f'{changed} setores alterados')
+    print(f'OK: {len(translations)} falas, {len(exe_translations)} textos do executável e '
+          f'{len(overlay_translations)} dos minigames traduzidos, {changed} setores alterados')
     print(f'Imagem: {OUTPUT.relative_to(ROOT)} (+ .cue)')
 
 

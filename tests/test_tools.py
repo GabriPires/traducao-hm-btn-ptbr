@@ -246,7 +246,8 @@ class TranslationFilesTest(unittest.TestCase):
             data = json.loads(path.read_text(encoding='utf-8'))
             self.assertIsInstance(data, dict, path.name)
             for entry_id, text in data.items():
-                pattern = r'^exe-[0-9A-F]{8}$' if path.stem == 'exe' else rf'^{re.escape(path.stem)}-\d{{4}}$'
+                pattern = {'exe': r'^exe-[0-9A-F]{8}$', 'overlays': r'^ov\d\d-[0-9A-F]{5}$'}.get(
+                    path.stem, rf'^{re.escape(path.stem)}-\d{{4}}$')
                 self.assertRegex(entry_id, pattern)
                 self.assertIsInstance(text, str, entry_id)
 

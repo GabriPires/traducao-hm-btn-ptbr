@@ -1,4 +1,5 @@
-"""Textos do executável SLUS_011.15: menus, comidas, itens de loja, sementes, memory card.
+"""Textos do executável SLUS_011.15 (menus, comidas, lojas, sementes, memory card) e dos
+overlays dos minigames.
 
 Ficam colados em dois blocos, cada um terminado por FFFF. O jogo chega a eles por
 caminhos variados (endereço absoluto em overlays, deslocamento a partir do início do
@@ -15,6 +16,16 @@ EXE_BASE = 0x80010000           # endereço da RAM onde o corpo do executável �
 HEADER = 0x800                  # cabeçalho PS-X EXE antes do corpo
 BLOCKS = ((0x8005175C, 0x80054BBA),   # menus, mensagens, comidas, lojas, sementes
           (0x800556B6, 0x800558A2))   # nomes de animais e competidores
+# Textos soltos nos overlays (subarquivos do A_FILE carregados sob demanda pelos
+# minigames). Nomes próprios de competidores ficam de fora. Mesma regra: no lugar.
+OVERLAY_STRINGS = {
+    11: (0x7035C,),                                    # sair da mina
+    17: (0x03662, 0x0367A, 0x03684, 0x03694),          # apostas da corrida de cavalos
+    21: (0x04CB8,),                                    # minigame de arremesso
+    23: (0x03A66, 0x03A8A, 0x03AAC, 0x03ACE, 0x03AF8,  # competidores "Fazenda X: nome"
+         0x03B28, 0x03B54, 0x03B76, 0x03BA2),
+    25: (0x04D6E,),
+}
 END = 0xFFFF
 SPACE = 0x0FFD
 CODE = re.compile(r'\{([^{}]*)\}')
@@ -35,6 +46,29 @@ def segments(exe):
                 yield EXE_BASE + begin - HEADER, bytes(exe[begin:pos])
                 begin = pos + 2
             pos += 2
+
+
+def overlay_segments(subfile_index, data):
+    """(id, deslocamento, bytes sem o FFFF) dos textos de um overlay."""
+    for start in OVERLAY_STRINGS.get(subfile_index, ()):
+        pos = start
+        while struct.unpack_from('<H', data, pos)[0] != END:
+            pos += 2
+        yield overlay_id(subfile_index, start), start, bytes(data[start:pos])
+
+
+def overlay_id(subfile_index, offset):
+    return f'ov{subfile_index:02d}-{offset:05X}'
+
+
+def write_at(data, offset, encoded, original_len):
+    """Como write(), mas por deslocamento dentro de um arquivo qualquer."""
+    if len(encoded) > original_len:
+        raise ValueError(f'{offset:#x}: maior que o original')
+    padding = struct.pack('<H', SPACE) * ((original_len - len(encoded)) // 2)
+    data[offset:offset + original_len] = encoded + padding
+    if struct.unpack_from('<H', data, offset + original_len)[0] != END:
+        raise ValueError(f'{offset:#x}: o terminador original não está onde deveria')
 
 
 def is_text(decoded):
@@ -78,10 +112,7 @@ def validate(en, pt, allowed, max_units):
 
 def write(exe, address, encoded, original_len):
     """Grava no lugar: texto + espaços até o tamanho original + o FFFF de sempre."""
-    if len(encoded) > original_len:
-        raise ValueError(f'{entry_id(address)}: maior que o original')
-    padding = struct.pack('<H', SPACE) * ((original_len - len(encoded)) // 2)
-    at = file_offset(address)
-    exe[at:at + original_len] = encoded + padding
-    if struct.unpack_from('<H', exe, at + original_len)[0] != END:
-        raise ValueError(f'{entry_id(address)}: o terminador original não está onde deveria')
+    try:
+        write_at(exe, file_offset(address), encoded, original_len)
+    except ValueError as error:
+        raise ValueError(f'{entry_id(address)}: {error}') from None
