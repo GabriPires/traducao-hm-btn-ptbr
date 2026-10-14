@@ -25,7 +25,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import accents, afile, dialog, font, rules
+from hmbtn import accents, afile, dialog, exetext, font, rules
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.speakers import Speakers
 from hmbtn.table import Table
@@ -177,7 +177,18 @@ def cmd_dump(args):
         path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         total += len(entries)
         print(f'  {path.relative_to(ROOT)}: {len(entries)} falas')
-    print(f'OK: {total} falas exportadas')
+    exe = (BUILD / 'disc' / 'SLUS_011.15').read_bytes()
+    entries = []
+    for address, raw in exetext.segments(exe):
+        text = table.decode_exact(raw)
+        if table.encode(text) != raw:
+            sys.exit(f'ERRO: {exetext.entry_id(address)} não sobrevive a decode/encode')
+        if exetext.is_text(text):
+            entries.append({'id': exetext.entry_id(address), 'max': len(raw) // 2, 'en': text})
+    path = SCRIPT / 'exe.json'
+    path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(f'  {path.relative_to(ROOT)}: {len(entries)} textos do executável')
+    print(f'OK: {total} falas e {len(entries)} textos do executável exportados')
 
 
 def read_translation_file(path):
@@ -199,7 +210,8 @@ def read_translation_file(path):
     if not isinstance(data, dict):
         return {}, ['o arquivo deve ser um objeto no formato {"id": "texto"}'], []
     for key, value in data.items():
-        if not re.fullmatch(rf'{re.escape(path.stem)}-\d{{4}}', key):
+        pattern = r'exe-[0-9A-F]{8}' if path.stem == 'exe' else rf'{re.escape(path.stem)}-\d{{4}}'
+        if not re.fullmatch(pattern, key):
             errors.append(f'id inválido ou no arquivo errado: {key}')
         elif not isinstance(value, str):
             errors.append(f'{key}: o valor deve ser um texto')
@@ -208,10 +220,10 @@ def read_translation_file(path):
     return data, errors, warnings
 
 
-def load_translations():
+def load_translations(folder=TRANSLATION):
     """Todas as falas de translation/*.json com texto. Sai com erro se algum arquivo estiver inválido."""
     translations = {}
-    for path in sorted(TRANSLATION.glob('*.json')):
+    for path in sorted(Path(folder).glob('*.json')):
         data, errors, _ = read_translation_file(path)
         if errors:
             sys.exit(f'ERRO em {path.relative_to(ROOT)}: {errors[0]} (rode: python3 tools/hm.py check)')
@@ -256,12 +268,15 @@ def cmd_check(args):
         with_errors += bool(file_errors)
         for entry_id, text in data.items():
             if not isinstance(text, str) or not text or entry_id not in originals:
-                if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}', entry_id):
+                if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}|exe-[0-9A-F]{8}', entry_id):
                     print(f'{entry_id}\n  ERRO: essa fala não existe no jogo')
                     with_errors += 1
                 continue
             original = originals[entry_id]
-            errors, warnings = rules.validate(original['prefix'], original['en'], text, allowed)
+            if entry_id.startswith('exe-'):
+                errors, warnings = exetext.validate(original['en'], text, allowed, original['max']), []
+            else:
+                errors, warnings = rules.validate(original['prefix'], original['en'], text, allowed)
             checked += 1
             with_errors += bool(errors)
             with_warnings += bool(warnings)
@@ -319,11 +334,35 @@ def cmd_font(args):
     print(f'Pacote da fonte: {len(package)} de {font.PACKAGE_LIMIT} bytes')
 
 
+def apply_exe(iso, table, allowed, translations, errors):
+    """Grava no lugar as traduções dos textos do executável. Devolve (bytes, entrada no disco)."""
+    with Disc(iso) as disc:
+        entry = disc.find('/SLUS_011.15')
+        original = disc.read_file(entry)
+    new = bytearray(original)
+    segments = {exetext.entry_id(address): (address, raw) for address, raw in exetext.segments(original)}
+    for entry_id, text in sorted(translations.items()):
+        if entry_id not in segments:
+            errors.append(f'{entry_id}: esse texto não existe no executável')
+            continue
+        address, raw = segments[entry_id]
+        en = table.decode_exact(raw)
+        problems = exetext.validate(en, text, allowed, len(raw) // 2)
+        if problems:
+            errors += [f'{entry_id}: {message}' for message in problems]
+            continue
+        try:
+            exetext.write(new, address, table.encode(text), len(raw))
+        except ValueError as error:
+            errors.append(str(error))
+    return {'original': original, 'new': new}, entry
+
+
 def cmd_build(args):
     """Aplica translation/*.json numa cópia da imagem: build/HARVESTMOON-PTBR.bin."""
     table = Table(TABLE)
     allowed = allowed_chars(table)
-    translations = load_translations()
+    translations = load_translations(args.translation)
     with Disc(args.iso) as disc:
         pack_entry = disc.find('/A_FILE.BIN')
         pack = disc.read_file(pack_entry)
@@ -333,6 +372,10 @@ def cmd_build(args):
     subfiles[font.FONT_SUBFILE][:font.PACKAGE_LIMIT] = package + bytes(font.PACKAGE_LIMIT - len(package))
 
     errors, warnings = [], []
+    exe_translations = {k: v for k, v in translations.items() if k.startswith('exe-')}
+    for entry_id in exe_translations:
+        del translations[entry_id]
+    exe, exe_entry = apply_exe(args.iso, table, allowed, exe_translations, errors)
     for entry_id, text in sorted(translations.items()):
         sub, index = (int(part) for part in entry_id.split('-'))
         if sub not in dialog.SUBFILES or index >= dialog.record_count(subfiles[sub]):
@@ -361,8 +404,10 @@ def cmd_build(args):
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(args.iso, OUTPUT)
     changed = patch_form1(OUTPUT, pack_entry.lba, pack, new_pack)
+    changed += patch_form1(OUTPUT, exe_entry.lba, exe['original'], bytes(exe['new']))
     write_cue(OUTPUT)
-    print(f'OK: {len(translations)} falas traduzidas, {changed} setores alterados')
+    print(f'OK: {len(translations)} falas e {len(exe_translations)} textos do executável traduzidos, '
+          f'{changed} setores alterados')
     print(f'Imagem: {OUTPUT.relative_to(ROOT)} (+ .cue)')
 
 
@@ -389,7 +434,9 @@ def main():
     p = sub.add_parser('check', help='confere as traduções contra o original e as regras do jogo')
     p.add_argument('files', nargs='*', help='arquivos de translation/ (ex.: 03); padrão: todos')
     sub.add_parser('font', help='gera build/fonte.png com a fonte original e a nova')
-    sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução e a fonte nova')
+    p = sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução e a fonte nova')
+    p.add_argument('--translation', default=TRANSLATION,
+                   help='pasta com as traduções (padrão: translation/)')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')

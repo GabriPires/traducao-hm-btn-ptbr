@@ -31,7 +31,8 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Prova de conceito no emulador | ✅ Concluído |
 | Fonte com acentos e cedilha | ✅ Concluído |
 | Tradução dos diálogos | 🔄 717 de 6.011 falas |
-| Menus, itens e minigames | ⏳ Pendente |
+| Menus e itens do executável (387 textos) | 🔄 Extraídos; 18 traduzidos |
+| Textos dos minigames (overlays) | ⏳ Pendente |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
 | Testes do início ao fim e lançamento | ⏳ Pendente |
 
@@ -111,7 +112,7 @@ tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela d
                    diálogos, regras da tradução, fonte e acentos
 tables/hmbtn.tbl   tabela de caracteres do jogo
 tables/personagens.tsv  quem é cada retrato (personagem e gênero)
-translation/       a tradução, um JSON por subarquivo
+translation/       a tradução: um JSON por subarquivo de diálogos e exe.json (executável)
 prompts/           instruções para agentes de IA que ajudam na tradução
 docs/              documentação técnica
 tests/             testes automatizados
@@ -127,6 +128,8 @@ tests/             testes automatizados
 4. [A fonte e os acentos](docs/04-fonte.md): onde a fonte fica, a compressão RLE, as
    letras acentuadas e a medida da caixa de diálogo
 5. [Guia de tradução](docs/05-guia-de-traducao.md): regras, estilo, quem fala e glossário
+6. [Textos do executável](docs/06-textos-do-executavel.md): menus e itens, como o jogo
+   os acha e por que são traduzidos no mesmo tamanho
 
 ## Licença
 

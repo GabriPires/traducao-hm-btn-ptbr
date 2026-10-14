@@ -36,6 +36,9 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - `build` gera `build/HARVESTMOON-PTBR.bin`: grava as falas no lugar e recalcula EDC/ECC só dos setores alterados
 - `tools/hmbtn/rules.py`: regras de uma fala traduzida (códigos, caracteres, linhas, páginas); usadas por `check` e `build`
 - `docs/05-guia-de-traducao.md`: regras, estilo e glossário (fonte única); `prompts/agente-tradutor.md`: prompt do agente tradutor, aponta para o guia. Termos novos aprovados na revisão vão para o glossário do guia
+- `docs/06-textos-do-executavel.md` + `tools/hmbtn/exetext.py`: 387 textos do executável, traduzidos NO LUGAR (nunca maiores que o original, completados com espaços); ids `exe-ENDEREÇO`; referências só parcialmente mapeadas
+- `build --translation PASTA`: gera a imagem a partir de outra pasta (útil se o lote em andamento do agente tiver erro)
+- Testes de tradução no emulador: usar save do memory card (diário), nunca save state (congela RAM/VRAM antigas)
 - `tables/personagens.tsv` + `tools/hmbtn/speakers.py`: retrato → personagem/gênero; o `dump` grava `speakers` (quem fala em cada página)
 - `docs/04-fonte.md`: fonte 8x12 monoespaçada em VRAM (896,0), comprimida (RLE) no 1º pacote do subarquivo 00; `font.py` (pacotes/RLE/folha) e `accents.py` (acentos gerados no build a partir das letras do disco, nada original no git); limite 0x2000 bytes
 - Para inspecionar RAM/VRAM: save state do DuckStation sem compressão (`SaveStateCompression = Uncompressed`); RAM e VRAM são localizadas buscando conteúdo conhecido (código do EXE, paleta de retrato)

@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, font, rules  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, rules  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -211,6 +211,33 @@ class SpeakersTest(unittest.TestCase):
         self.assertEqual(self.speakers.per_page('{0FF6}', 'pensamento'), ['sem retrato'])
 
 
+class ExeTextTest(unittest.TestCase):
+    def setUp(self):
+        table = Table(TABLE)
+        self.allowed = {t for t in table.decode_map.values() if len(t) == 1}
+
+    def test_write_pads_with_spaces_and_keeps_terminator(self):
+        address = exetext.BLOCKS[0][0]
+        at = exetext.file_offset(address)
+        exe = bytearray(at + 16)
+        exe[at:at + 10] = struct.pack('<5H', 1, 2, 3, 4, 0xFFFF)
+        exetext.write(exe, address, struct.pack('<2H', 7, 8), 8)
+        self.assertEqual(exe[at:at + 10], struct.pack('<5H', 7, 8, 0x0FFD, 0x0FFD, 0xFFFF))
+
+    def test_write_refuses_longer_text(self):
+        address = exetext.BLOCKS[0][0]
+        exe = bytearray(exetext.file_offset(address) + 16)
+        with self.assertRaises(ValueError):
+            exetext.write(exe, address, bytes(10), 8)
+
+    def test_validate(self):
+        self.assertEqual(exetext.validate('Nothing', 'Nada', self.allowed, 7), [])
+        self.assertTrue(exetext.validate('Free', 'Livre', self.allowed, 4))
+        self.assertTrue(exetext.validate(' Yes\n No', 'Sim\n Não', self.allowed, 8))
+        self.assertEqual(exetext.validate(' Yes\n No', ' Sim\n Nã', self.allowed, 8), [])
+        self.assertTrue(exetext.validate('Slot {4000}', 'Entrada', self.allowed, 20))
+
+
 class TranslationFilesTest(unittest.TestCase):
     """translation/ vai para um repositório público: só {id: texto em português}."""
 
@@ -219,7 +246,8 @@ class TranslationFilesTest(unittest.TestCase):
             data = json.loads(path.read_text(encoding='utf-8'))
             self.assertIsInstance(data, dict, path.name)
             for entry_id, text in data.items():
-                self.assertRegex(entry_id, rf'^{re.escape(path.stem)}-\d{{4}}$')
+                pattern = r'^exe-[0-9A-F]{8}$' if path.stem == 'exe' else rf'^{re.escape(path.stem)}-\d{{4}}$'
+                self.assertRegex(entry_id, pattern)
                 self.assertIsInstance(text, str, entry_id)
 
 
