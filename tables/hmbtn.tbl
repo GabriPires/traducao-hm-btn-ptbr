@@ -1,0 +1,95 @@
+# Tabela de caracteres - Harvest Moon: Back to Nature (USA, SLUS-01115)
+# Formato: HEX=texto (valores de 16 bits, little-endian no arquivo).
+# Códigos de controle ficam entre chaves. Escapes: \s = espaço, \n = quebra de linha. Fonte das deduções: docs/01-disco-e-texto.md
+#
+# --- Letras maiúsculas (confirmado) ---
+0000=A
+0001=B
+0002=C
+0003=D
+0004=E
+0005=F
+0006=G
+0007=H
+0008=I
+0009=J
+000A=K
+000B=L
+000C=M
+000D=N
+000E=O
+000F=P
+0010=Q
+0011=R
+0012=S
+0013=T
+0014=U
+0015=V
+0016=W
+0017=X
+0018=Y
+0019=Z
+# --- Letras minúsculas (confirmado) ---
+0020=a
+0021=b
+0022=c
+0023=d
+0024=e
+0025=f
+0026=g
+0027=h
+0028=i
+0029=j
+002A=k
+002B=l
+002C=m
+002D=n
+002E=o
+002F=p
+0030=q
+0031=r
+0032=s
+0033=t
+0034=u
+0035=v
+0036=w
+0037=x
+0038=y
+0039=z
+# --- Dígitos (confirmado por andares, horários e preços) ---
+0040=0
+0041=1
+0042=2
+0043=3
+0044=4
+0045=5
+0046=6
+0047=7
+0048=8
+0049=9
+# --- Contrações: um único caractere desenha apóstrofo + letra (confirmado por contexto) ---
+0050='t
+0051='s
+0052='l
+0053='d
+0054='m
+0055='r
+0056='v
+# --- Pontuação ---
+# 0062: provável "?" (sempre no fim de perguntas)
+0062=?
+0063=!
+0066=:
+# 0069: hífen, usado em pares como travessão
+0069=-
+006C=.
+# 007F: provável reticências como um único caractere
+007F=…
+008C=,
+008D='
+008E="
+# --- Controle ---
+0FFD=\s
+400A={jogador}
+FFFE=\n
+FFFF={fim}

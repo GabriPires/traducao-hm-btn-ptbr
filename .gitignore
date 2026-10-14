@@ -1,0 +1,20 @@
+# Imagens do jogo: nunca versionar (direitos autorais + tamanho)
+*.iso
+*.bin
+*.BIN
+*.cue
+*.img
+
+# Tudo que é extraído ou gerado a partir do disco
+/build/
+/dist/
+
+# Emuladores: saves, memory cards, savestates, BIOS
+*.mcd
+*.mcr
+*.sstate
+*.sav
+bios/
+
+__pycache__/
+*.pyc
