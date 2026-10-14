@@ -11,9 +11,10 @@ Fase 2. Comando: `python3 tools/hm.py build`.
    - grava no setor de texto do registro (0x1800), completando com zeros.
 3. Confere que nenhum subarquivo mudou de tamanho. Tudo é gravado no lugar, então o
    índice do pacote e o sistema de arquivos do CD continuam valendo.
-4. Copia a imagem original para `build/HARVESTMOON-PTBR.bin` e reescreve **só os
+4. Desenha as letras acentuadas na fonte e regrava o pacote dela no subarquivo 00.
+5. Copia a imagem original para `build/HARVESTMOON-PTBR.bin` e reescreve **só os
    setores que mudaram**, recalculando o EDC/ECC de cada um (`tools/hmbtn/ecc.py`).
-5. Gera o `.cue` ao lado.
+6. Gera o `.cue` ao lado.
 
 Antes de gravar, cada fala passa pelas regras de `tools/hmbtn/rules.py`, as mesmas do
 comando `check`. Qualquer erro impede a geração da imagem:
@@ -21,10 +22,10 @@ comando `check`. Qualquer erro impede a geração da imagem:
 - códigos de controle diferentes do original (ordem ou posição), nomes variáveis ou
   símbolos faltando, número de páginas diferente;
 - caracteres fora da lista permitida, `...` no lugar de `…`;
-- linha com mais de 30 caracteres visíveis (provisório, até a Fase 3), página com
-  linhas demais, texto com mais de 1000 unidades;
-- caractere sem desenho na fonte. Por enquanto isso inclui qualquer acento, que o
-  `check` já aceita porque a fonte vai ganhá-los na Fase 3;
+- linha com mais de 31 caracteres visíveis, página com linhas demais, texto com mais
+  de 1000 unidades;
+- caractere sem desenho na fonte (os acentos foram acrescentados na Fase 3,
+  [04-fonte.md](04-fonte.md));
 - `id` inexistente.
 
 ## Por que recalcular EDC/ECC

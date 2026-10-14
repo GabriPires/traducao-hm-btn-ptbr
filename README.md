@@ -29,7 +29,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Ferramentas de extração e remontagem do disco | ✅ Concluído |
 | Mapeamento dos diálogos (6.011 falas) | ✅ Concluído |
 | Prova de conceito no emulador | ✅ Concluído |
-| Fonte com acentos e cedilha | 🔄 Próxima etapa |
+| Fonte com acentos e cedilha | ✅ Concluído |
 | Tradução dos diálogos | 🔄 35 de 6.011 falas (lote piloto) |
 | Menus, itens e minigames | ⏳ Pendente |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
@@ -76,6 +76,7 @@ python3 tools/hm.py info      # confere a imagem e lista os arquivos do disco
 python3 tools/hm.py extract   # extrai os arquivos para build/
 python3 tools/hm.py dump      # exporta os diálogos originais para build/script/
 python3 tools/hm.py check     # confere as traduções contra o original e as regras do jogo
+python3 tools/hm.py font      # prévia da fonte com os acentos em build/fonte.png
 python3 tools/hm.py build     # gera build/HARVESTMOON-PTBR.bin (+ .cue) com a tradução
 
 python3 -m unittest discover tests
@@ -106,7 +107,7 @@ no disco e recalcula os códigos de correção de erro dos setores alterados.
 ```
 tools/hm.py        linha de comando
 tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto,
-                   diálogos, regras da tradução
+                   diálogos, regras da tradução, fonte e acentos
 tables/hmbtn.tbl   tabela de caracteres do jogo
 translation/       a tradução, um JSON por subarquivo
 docs/              documentação técnica
@@ -120,6 +121,8 @@ tests/             testes automatizados
 2. [Os diálogos](docs/02-dialogos.md): registros de 8 KB, limites, códigos de controle
 3. [Montando a imagem traduzida](docs/03-montagem.md): gravação no lugar, EDC/ECC,
    prova de conceito
+4. [A fonte e os acentos](docs/04-fonte.md): onde a fonte fica, a compressão RLE, as
+   letras acentuadas e a medida da caixa de diálogo
 
 ## Licença
 

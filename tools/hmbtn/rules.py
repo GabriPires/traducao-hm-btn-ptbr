@@ -13,11 +13,10 @@ Tipos de código entre chaves:
 import re
 from collections import Counter
 
-MAX_LINE = 30           # caracteres visíveis por linha (provisório, até a Fase 3)
+MAX_LINE = 31           # caracteres por linha: letras de 8 px, caixa de x=30 a 290, setinha ▼ no fim
 MAX_LINES_DIALOG = 4    # linhas por página nos diálogos com retrato
 MAX_UNITS = 1000        # o limite físico é 1023 valores; 1000 deixa margem para o prefixo
 NAME_WIDTH = 8          # espaço reservado na linha para cada nome variável
-PLANNED = set('áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ')   # entram na fonte na Fase 3
 APOSTROPHE = '008D'     # apóstrofo cru: pode sumir na tradução
 
 CODE = re.compile(r'\{([^{}]*)\}')

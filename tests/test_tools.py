@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import afile, dialog, ecc, rules  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, font, rules  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
 
@@ -41,7 +41,10 @@ class TableTest(unittest.TestCase):
 
     def test_unknown_char_raises(self):
         with self.assertRaises(ValueError):
-            self.table.encode('ação')
+            self.table.encode('pingüim')
+
+    def test_accents_encode(self):
+        self.assertEqual(self.table.decode(self.table.encode('Ação, é você?')), 'Ação, é você?')
 
 
 class AfileTest(unittest.TestCase):
@@ -90,7 +93,7 @@ class RulesTest(unittest.TestCase):
 
     def setUp(self):
         table = Table(TABLE)
-        self.allowed = {t for t in table.decode_map.values() if len(t) == 1} | rules.PLANNED
+        self.allowed = {t for t in table.decode_map.values() if len(t) == 1}
 
     def errors(self, pt, en=EN, prefix=DIALOG):
         return rules.validate(prefix, en, pt, self.allowed)[0]
@@ -140,6 +143,48 @@ class RulesTest(unittest.TestCase):
         bad = 'Vem?{0FFC}{0FFA}\n{0FF6}{0FF4}{0FF5}{0E2F} Sim\nNão'
         self.assertEqual(self.errors(good, en=en), [])
         self.assertTrue(any('espaço no início' in e for e in self.errors(bad, en=en)))
+
+
+class FontTest(unittest.TestCase):
+    def test_rle_roundtrip(self):
+        data = bytes([0] * 300 + [1, 2, 3] + [9] * 5 + list(range(200)) + [7, 7])
+        packed = font.rle_encode(data)
+        self.assertEqual(font.rle_decode(packed, len(data)), data)
+        self.assertLess(len(packed), len(data))
+
+    def test_rle_decode_known_commands(self):
+        # 0xFE = copiar 2 bytes literais; 0x03 = repetir o próximo byte 3 vezes
+        self.assertEqual(font.rle_decode(bytes([0xFE, 0x49, 0x09, 0x03, 0x00]), 5), bytes([0x49, 0x09, 0, 0, 0]))
+
+    def test_package_roundtrip(self):
+        chunks = [{'kind': 6, 'x': 896, 'y': 251, 'w': 16, 'h': 1, 'payload': bytes(32)},
+                  {'kind': 0, 'x': 896, 'y': 0, 'w': 32, 'h': 120, 'payload': b'\x7f\x00\x2d'}]
+        data = font.write_package(chunks)
+        self.assertEqual(len(data) % 4, 0)
+        self.assertEqual(font.read_package(data, 0), (chunks, len(data)))
+
+    def test_sheet_glyph_roundtrip(self):
+        sheet = font.Sheet(bytes(32 * 120 * 2))
+        rows = [[(x + y) % 16 for x in range(8)] for y in range(12)]
+        sheet.set_glyph(0x3A, rows)
+        self.assertEqual(sheet.glyph(0x3A), rows)
+        self.assertTrue(sheet.is_blank(0x3B))
+
+    def test_accents_match_table(self):
+        table = Table(TABLE)
+        for char, (code, base, _, _) in accents.GLYPHS.items():
+            self.assertEqual(table.encode(char), struct.pack('<H', code), char)
+            self.assertIn(base, table.encode_map)
+        codes = [spec[0] for spec in accents.GLYPHS.values()]
+        self.assertEqual(len(codes), len(set(codes)))
+        self.assertNotIn(0x1B, codes)
+        self.assertNotIn(0x1E, codes)
+
+    def test_uppercase_accent_keeps_twelve_rows(self):
+        base = [[1] * 8 for _ in range(11)] + [[0] * 8]
+        glyph = accents.build(base, 'acute', {'drop': (2, 6)})
+        self.assertEqual(len(glyph), 12)
+        self.assertEqual(glyph[11], [0] * 8)
 
 
 class TranslationFilesTest(unittest.TestCase):

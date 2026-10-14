@@ -75,24 +75,53 @@
 0054='m
 0055='r
 0056='v
-# --- Pontuação ---
-# 0062: provável "?" (sempre no fim de perguntas)
+# --- Pontuação (confirmada pelo desenho na fonte) ---
 0062=?
 0063=!
 0066=:
+0067=;
+0068=+
 # 0069: hífen, usado em pares como travessão
 0069=-
 006A=(
 006B=)
 006C=.
-# 007F: provável reticências como um único caractere
+# 007F: reticências num único caractere (0064 é outra versão, no alto da linha)
 007F=…
 008C=,
 008D='
 008E="
-# --- Símbolos ---
-# 0076: coração entre nomes de casais
-0076=♥
+# --- Símbolos (confirmados pelo desenho na fonte) ---
+0071=/
+0074=~
+0076=&
+0080=♥
+008F=%
+# --- Letras acentuadas (desenhadas pelo projeto; ver tools/hmbtn/accents.py) ---
+001A=Â
+001C=Ã
+001D=Õ
+003A=á
+003B=à
+003C=â
+003D=ã
+003E=é
+003F=ê
+004A=í
+004B=ó
+004C=ô
+004D=õ
+004E=ú
+004F=ç
+0057=É
+0058=À
+0059=Á
+005A=Ó
+005B=Ç
+005C=Ê
+005D=Í
+005E=Ú
+005F=Ô
 # --- Controle ---
 0FFD=\s
 400A={jogador}

@@ -44,10 +44,10 @@ problemas ([03-montagem.md](03-montagem.md)).
   a mediana é 71, 90% ficam abaixo de 191 e 99% abaixo de 705. Os maiores (1023, no
   limite exato) são programas de TV no subarquivo 05, como `05-0610`, `05-0390` e
   `05-0374`. Em português esses vão precisar de texto mais enxuto.
-- **Por linha:** no inglês quase todas têm até 31 caracteres (raramente 32 ou 33). O
-  limite real depende da largura da caixa e da fonte, o que vamos medir na Fase 3.
-  Até lá, use **30 caracteres por linha** como regra.
-- **Por página:** a maioria das páginas tem de 1 a 4 linhas.
+- **Por linha:** no inglês quase todas têm até 31 caracteres (raramente 32 ou 33).
+  Medindo a caixa na tela (Fase 3, [04-fonte.md](04-fonte.md)), o limite é
+  **31 caracteres por linha**.
+- **Por página:** a caixa de diálogo mostra 4 linhas.
 
 ## Códigos de controle
 

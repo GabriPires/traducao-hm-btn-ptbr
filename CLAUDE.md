@@ -17,7 +17,7 @@ Também é um projeto de aprendizado de romhacking.
 ## Comandos
 
 ```sh
-python3 tools/hm.py info | cue | extract | dump | check | build
+python3 tools/hm.py info | cue | extract | dump | check | font | build
 python3 tools/hm.py find "texto em inglês"
 python3 tools/hm.py peek <subarquivo> <offset>
 python3 -m unittest discover tests
@@ -36,3 +36,5 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - `build` gera `build/HARVESTMOON-PTBR.bin`: grava as falas no lugar e recalcula EDC/ECC só dos setores alterados
 - `tools/hmbtn/rules.py`: regras de uma fala traduzida (códigos, caracteres, linhas, páginas); usadas por `check` e `build`
 - O prompt do agente tradutor fica em `build/prompt-tradutor.md` (local, fora do git)
+- `docs/04-fonte.md`: fonte 8x12 monoespaçada em VRAM (896,0), comprimida (RLE) no 1º pacote do subarquivo 00; `font.py` (pacotes/RLE/folha) e `accents.py` (acentos gerados no build a partir das letras do disco, nada original no git); limite 0x2000 bytes
+- Para inspecionar RAM/VRAM: save state do DuckStation sem compressão (`SaveStateCompression = Uncompressed`); RAM e VRAM são localizadas buscando conteúdo conhecido (código do EXE, paleta de retrato)

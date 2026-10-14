@@ -7,7 +7,8 @@ Uso:
     python3 tools/hm.py extract              # extrai tudo para build/
     python3 tools/hm.py dump                 # exporta os diálogos originais para build/script/
     python3 tools/hm.py check [03 ...]       # confere as traduções contra as regras do jogo
-    python3 tools/hm.py build                # aplica translation/*.json numa cópia da imagem
+    python3 tools/hm.py font                 # prévia da fonte com os acentos (build/fonte.png)
+    python3 tools/hm.py build                # aplica fonte e translation/*.json numa cópia da imagem
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
 
@@ -24,7 +25,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import afile, dialog, rules
+from hmbtn import accents, afile, dialog, font, rules
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.table import Table
 
@@ -35,6 +36,7 @@ TABLE = ROOT / 'tables' / 'hmbtn.tbl'
 SCRIPT = BUILD / 'script'
 TRANSLATION = ROOT / 'translation'
 OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
+FONT_PREVIEW = BUILD / 'fonte.png'
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
 
@@ -211,8 +213,8 @@ def load_translations():
 
 
 def allowed_chars(table):
-    """Caracteres que uma tradução pode usar: os da fonte atual mais os acentos planejados."""
-    return {text for text in table.decode_map.values() if len(text) == 1} | rules.PLANNED
+    """Caracteres que uma tradução pode usar: os que têm desenho na fonte (com os acentos)."""
+    return {text for text in table.decode_map.values() if len(text) == 1}
 
 
 def load_originals():
@@ -269,6 +271,47 @@ def cmd_check(args):
     print('OK')
 
 
+def patched_font(subfile, table):
+    """Aplica as letras acentuadas na fonte. Devolve (folha original, folha nova, bytes do pacote)."""
+    chunks, end = font.read_package(subfile, font.FONT_PACKAGE_OFFSET)
+    if any(subfile[end:font.PACKAGE_LIMIT]):
+        sys.exit('ERRO: há dados entre o fim do pacote da fonte e o limite; não é seguro crescer')
+    index = font.find_font(chunks)
+    w, h = font.FONT_RECT[2:]
+    original = font.rle_decode(chunks[index]['payload'], w * h * 2)
+    sheet = font.Sheet(original)
+    accents.apply(sheet, {text: code for code, text in table.decode_map.items() if len(text) == 1})
+    chunks[index]['payload'] = font.rle_encode(bytes(sheet.data))
+    package = font.write_package(chunks)
+    if len(package) > font.PACKAGE_LIMIT:
+        sys.exit(f'ERRO: a fonte nova não cabe ({len(package)} bytes, limite {font.PACKAGE_LIMIT})')
+    if font.rle_decode(chunks[index]['payload'], w * h * 2) != bytes(sheet.data):
+        sys.exit('ERRO: a fonte comprimida não volta igual')
+    return original, bytes(sheet.data), package
+
+
+def cmd_font(args):
+    """Gera build/fonte.png: a folha original e a nova lado a lado, ampliadas."""
+    from PIL import Image
+    table = Table(TABLE)
+    original, new, package = patched_font(bytearray(load_subfiles()[font.FONT_SUBFILE]), table)
+    w, h, scale = font.FONT_RECT[2] * 4, font.FONT_RECT[3], 4
+    image = Image.new('RGB', ((w * 2 + 8) * scale, h * scale), (240, 208, 160))
+    for column, data in enumerate((original, new)):
+        sheet = font.Sheet(data)
+        for code in range(font.PER_ROW * (h // font.GLYPH_H)):
+            for y, row in enumerate(sheet.glyph(code)):
+                for x, value in enumerate(row):
+                    if value:
+                        gray = 40 + value * 12
+                        px = (column * (w + 8) + (code % font.PER_ROW) * font.GLYPH_W + x) * scale
+                        py = ((code // font.PER_ROW) * font.GLYPH_H + y) * scale
+                        image.paste((gray, gray, gray), (px, py, px + scale, py + scale))
+    image.save(FONT_PREVIEW)
+    print(f'Prévia: {FONT_PREVIEW.relative_to(ROOT)} (original à esquerda, nova à direita)')
+    print(f'Pacote da fonte: {len(package)} de {font.PACKAGE_LIMIT} bytes')
+
+
 def cmd_build(args):
     """Aplica translation/*.json numa cópia da imagem: build/HARVESTMOON-PTBR.bin."""
     table = Table(TABLE)
@@ -279,6 +322,8 @@ def cmd_build(args):
         pack = disc.read_file(pack_entry)
         hdt = disc.read_file(disc.find('/A_FILE.HDT'))
     subfiles = [bytearray(data) for data in afile.split(pack, afile.parse_hdt(hdt))]
+    _, _, package = patched_font(subfiles[font.FONT_SUBFILE], table)
+    subfiles[font.FONT_SUBFILE][:font.PACKAGE_LIMIT] = package + bytes(font.PACKAGE_LIMIT - len(package))
 
     errors, warnings = [], []
     for entry_id, text in sorted(translations.items()):
@@ -336,14 +381,15 @@ def main():
     sub.add_parser('dump', help='exporta os diálogos originais para build/script/*.json')
     p = sub.add_parser('check', help='confere as traduções contra o original e as regras do jogo')
     p.add_argument('files', nargs='*', help='arquivos de translation/ (ex.: 03); padrão: todos')
-    sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução')
+    sub.add_parser('font', help='gera build/fonte.png com a fonte original e a nova')
+    sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução e a fonte nova')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
 
 
 if __name__ == '__main__':
