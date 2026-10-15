@@ -19,6 +19,7 @@ MAX_UNITS = 1000        # o limite físico é 1023 valores; 1000 deixa margem pa
 NAME_WIDTH = 8          # espaço reservado na linha para cada nome variável
 APOSTROPHE = '008D'     # apóstrofo cru: pode sumir na tradução
 SHORT_RATIO = 0.7       # abaixo disso (em textos longos), a tradução provavelmente cortou conteúdo
+SHORT_RATIO_MEDIUM = 0.6  # o mesmo para textos médios (81 a 200 unidades), que variam mais
 TV_PREFIX = '{0FF1}'    # programas de TV: texto corrido, longo
 SENTENCE_END = tuple('.!?…:;)"\'♥~')
 NEW_UTTERANCE = tuple('"(')
@@ -137,7 +138,8 @@ def validate(prefix, en, pt, allowed):
     elif pt == en:
         warnings.append('tradução idêntica ao original')
 
-    if units(en) > 200 and units(pt) < SHORT_RATIO * units(en):
+    ratio = SHORT_RATIO if units(en) > 200 else SHORT_RATIO_MEDIUM if units(en) > 80 else 0
+    if units(pt) < ratio * units(en):
         warnings.append(f'a tradução tem {units(pt)} unidades, {units(pt) * 100 // units(en)}% do original '
                         f'({units(en)}): confira se nada foi cortado (o limite é {MAX_UNITS})')
     if TV_PREFIX in prefix:

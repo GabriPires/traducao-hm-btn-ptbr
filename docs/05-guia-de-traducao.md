@@ -142,7 +142,8 @@ Os programas (subarquivo 05) são textos longos e corridos, muitos perto do limi
 - As **1000 unidades são um teto, não uma meta de corte.** Quando o original está perto
   de 1000, a tradução também fica perto disso (algo entre 850 e 1000); quando o original
   é menor, ela fica com tamanho parecido. O `check` avisa se a tradução tiver menos de
-  70% do original ("confira se nada foi cortado"): resolva esse aviso.
+  70% do original (60% nos textos médios) ("confira se nada foi cortado"): resolva esse
+  aviso. Título do programa e falas de abertura também contam.
 - Passou de 1000? Enxugue o mínimo: frases mais diretas, interjeições e repetições.
   Nunca tire informação (nomes, números, o que acontece, as piadas).
 - Preencha as linhas até perto de 31 caracteres. Ao corrigir uma linha longa,
@@ -352,6 +353,9 @@ Farmer Fran, Jimmy).
 | the Ranch (sem "Yodel") | o Rancho (como no mapa) |
 | Cozinha: opção da receita / opção do prato novo | Seguir uma receita / Criar um prato novo (textos do menu) |
 | Diário: opção de escrever e dormir / opção de dormir sem escrever | Escrever no diário e dormir / Dormir sem escrever no diário (textos do menu) |
+| Diário: Read diary / Exchange animals | Ler o diário / Trocar animais (textos do menu) |
+| Ferraria: Present for Girl / Girl's present | Mimo p/ moça (texto do menu) |
+| Saddlebag / Small Fish (isca) / Hole (da mina) / {006D}{006D} Maker | alforje / Peixe pequeno / Buraco / Máquina de {006D}{006D} |
 | Moon Drop / Moondrop (flor) | Gota da Lua |
 | Pink Cat / Magic Red / Toy Flower / Orangecup (flores) | Gato Rosa / Rubra Mágica / Flor-Brinquedo / Taça Laranja |
 | Hothouse / Lumber | Estufa / madeira (no menu: "tábuas") |

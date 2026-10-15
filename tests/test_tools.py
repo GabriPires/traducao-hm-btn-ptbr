@@ -153,6 +153,12 @@ class RulesTest(unittest.TestCase):
         self.assertTrue(any('confira se nada foi cortado' in w
                             for w in self.warnings('Uma raposa pulou o cão.', en, '{0FF1}')))
         self.assertEqual(self.warnings('Uma raposa.', 'A fox jumps over the dog.', '{0FF3}'), [])
+        # texto médio: só avisa abaixo de 60%
+        medium = 'The quick brown fox jumps over\nthe lazy dog. ' * 2
+        self.assertTrue(any('confira se nada foi cortado' in w
+                            for w in self.warnings('Uma raposa pulou.', medium, '{0FF1}')))
+        self.assertEqual(self.warnings('A rápida raposa marrom pula\no cão preguiçoso. Duas vezes.',
+                                       medium, '{0FF1}'), [])
 
     def test_warns_loose_line_breaks_on_tv(self):
         en = 'Open the window and do not\nstand too near the old stove.'
