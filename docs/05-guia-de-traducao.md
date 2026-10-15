@@ -107,7 +107,9 @@ Proibidos: aspas curvas (`“ ” ‘ ’`), travessão (`—`, `–`), `ü`, `�
   como 8; espaços contam. (A caixa tem espaço para 32 letras de 8 pixels, mas a
   setinha ▼ ocupa o fim da última linha.)
 - **Linhas por página:** diálogos com retrato mostram **4**; nos outros tipos, no
-  máximo as linhas da página original.
+  máximo as linhas da página original. Quando o original já usa mais linhas numa
+  página (comum nas falas de loja), você também pode usar até esse número: aproveite o
+  espaço em vez de transformar a fala em telegrama.
 - Não coube? Reescreva mais curto. Nunca crie páginas.
 - Linhas que começam com espaço (opções de menu, títulos centralizados) mantêm o espaço.
 - **Tamanho total:** até 1000 unidades por fala (cada caractere e cada código vale 1).
@@ -197,6 +199,11 @@ cada código e conferida pelas falas em que os personagens se apresentam.
   "Aham" para pigarro: em português ele significa "sim", e é a tradução certa de
   "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac.
 - Falas iguais em inglês recebem traduções iguais, salvo quando o contexto pede outra.
+- Mensagens sem retrato que falam com o jogador ("You don't have any…", "Your barn is
+  full…") ficam no **neutro ou em "você"**, como o original ("Você não tem…", "O
+  Estábulo está cheio…"). Não passe para a 1ª pessoa ("Não tenho…").
+- **Cartas, cartões e avisos:** a assinatura fica alinhada à direita, terminando na
+  mesma coluna do original. Ajuste os espaços antes do nome quando ele mudar de tamanho.
 - Horários no padrão brasileiro: `6PM` → `18h`; `8:00` pode ficar. Moeda: `500G`.
   Datas: `the 22nd of Spring` → `dia 22 da Primavera`.
 - Adapte expressões em vez de traduzir palavra por palavra ("Lunch Special" →
@@ -240,6 +247,18 @@ Farmer Fran, Jimmy).
 | Hen House / Barn / stable | Galinheiro / Estábulo / Estábulo |
 | water mill | moinho d'água |
 | Shipping Bin / Bin | Caixa de Envio / Caixa |
+| Feed Shed / Wood Shed / silo | Depósito de Ração / Depósito de Madeira / silo |
+| Feed Box (vacas, ovelhas, galinhas) / Incubator | Comedouro / Incubadora |
+| Feed Box (da Ração de peixe) | Caixa de Ração |
+| Large Rucksack / Bell | Mochila Grande / Sino |
+| Chicken Lil's (loja da Lillia) | Granja da Lillia |
+| Doug's Place | Pousada do Doug (ou só Pousada) |
+| Mary's Library | Biblioteca da Mary |
+| Mineral Clinic / Mineral Beach | Clínica Mineral / Praia Mineral |
+| Wrapping Corner / Cooking Corner (no Supermercado) | Balcão de Embrulhos / Setor de Culinária |
+| TV Shopping (programa) | Compras pela TV |
+| Snowcone | Raspadinha |
+| D button / {006E} button (textos de ajuda) | Direcional / Botão {006E} |
 | Memory Card | MEMORY CARD, no masculino ("o MEMORY CARD", "Salvando no MEMORY CARD") |
 | Fodder / Chicken Feed / Fish Food | Feno / Ração de galinha / Ração de peixe |
 | Ax / Hoe / Sickle / Hammer / Watering Can | Machado / Enxada / Foice / Martelo / Regador |
@@ -281,6 +300,8 @@ Farmer Fran, Jimmy).
 | Thanksgiving / Winter Thanksgiving | Ação de Graças / Ação de Graças de Inverno |
 | Fireworks Display | Queima de Fogos |
 | New Year's (Party) | Ano-Novo (Festa de Ano-Novo) |
+| New Year's Eve (Party) / the Summit | Réveillon / o cume |
+| Moon Viewing | Contemplação da Lua |
 
 ### Comidas (como aparecem nos menus)
 
