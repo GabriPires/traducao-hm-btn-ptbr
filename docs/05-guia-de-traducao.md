@@ -406,6 +406,9 @@ Farmer Fran, Jimmy).
 | Fisher King (apelido que o Greg dá ao jogador) | Rei da Pesca |
 | warehouse (do Duke, onde o vinho envelhece) | adega |
 | Church / Square (o lugar da vila, também no meio da frase) | Igreja / Praça |
+| pregnant (falando de um animal) | prenhe (pessoa: grávida) |
+| Corridas (06): 1st place… / Ready… / Go! / largada | Primeiro lugar:… / Preparar… / Já! / Atenção, preparar… |
+| Opções: Got it / Explain that again | Entendi / Explicar de novo |
 | Ingredientes (butter, sugar, salt…) | minúscula; só utensílios e itens de loja com maiúscula (Faca, Panela) |
 
 ### Comidas (como aparecem nos menus)
