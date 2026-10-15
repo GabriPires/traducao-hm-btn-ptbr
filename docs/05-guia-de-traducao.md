@@ -287,6 +287,12 @@ Farmer Fran, Jimmy).
 | Pear Tree City / Nut City / Twig Town / Happy Town (TV) | Cidade da Pereira / Cidade da Noz / Vila do Galho / Vila Feliz |
 | Twilight Paradise / Northernmost Prison / Popo Valley (TV) | Paraíso do Crepúsculo / Prisão do Extremo Norte / Vale Popo |
 | SUGDW apple | maçã SUGDW (por extenso só onde o original explica a sigla) |
+| Mechabot Ultror on Summer Vacation (série) | Mechabot Ultror nas Férias de Verão |
+| Red / Blue / Yellow / Green (heróis do Ultror) | iguais, em inglês (são codinomes) |
+| Ultror Change / Ultror Combine / Ultror Suit | Transformação Ultror / União Ultror / Traje Ultror |
+| Ultror Slash / Super Ultror Blade | Corte Ultror / Super Lâmina Ultror |
+| Episode / To be continued… / Next time: / See you next time! | Episódio / Continua… / No próximo episódio: / Até a próxima! |
+| aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
 | Grass / Grass seeds (pasto que vira Feno) | Capim / Sementes de capim |
 | Blue / Red / Green grass (ervas da montanha) | Erva azul / Erva vermelha / Erva verde |
 | Fishing pole (vara dos profissionais) | Vara de Pesca avançada |
