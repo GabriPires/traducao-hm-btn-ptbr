@@ -398,6 +398,8 @@ Farmer Fran, Jimmy).
 | Opções: Ask to accompany / Don't ask (Festival da Deusa) | Convidar / Não convidar |
 | the old man (Gray falando do Saibara) | o velho |
 | escort (no Festival da Deusa) | par ("Você vai ser o meu par!") |
+| Desert Flower (a flor que o marido da Lillia procura) | Flor do Deserto |
+| wine storeroom / cellar (do Duke) | adega |
 
 ### Comidas (como aparecem nos menus)
 
