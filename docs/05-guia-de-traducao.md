@@ -307,6 +307,8 @@ Farmer Fran, Jimmy).
 | New Year's Special TV: / Year-End Special TV: | Especial de Ano-Novo: / Especial de Fim de Ano: |
 | Calligraphy / Pounding Mochi / Parlor Trick Party / Polar Bear Swim / Cooking DX! / Snowball Fight | Caligrafia / Pilando Mochi / Festa de Truques / Mergulho no Gelo / Culinária DX! / Guerra de Bolas de Neve |
 | Previsão do tempo: frase de abertura | Esta é a previsão do tempo para amanhã! |
+| Notícias: Day 5 of Spring / abertura da lista de eventos / 8th: | Dia 5 da Primavera / Eventos deste mês: / Dia 8: |
+| 'Chicken Sumo' (concurso do Festival das Galinhas) | 'Sumô de Galinha' |
 | aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
 | wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
 | F-3.14 World Grand Prix / Round (da corrida) | Grande Prêmio Mundial de F-3.14 / etapa |
@@ -361,7 +363,7 @@ Farmer Fran, Jimmy).
 | (Beach) Opening Day | Abertura da Praia |
 | Harvest Festival | Festival da Colheita |
 | Star Night (Festival) | Noite Estrelada (Festival da Noite Estrelada) |
-| Thanksgiving / Winter Thanksgiving | Ação de Graças / Ação de Graças de Inverno |
+| Thanksgiving / Spring / Winter Thanksgiving (Festival) | Ação de Graças / Ação de Graças da Primavera / Ação de Graças de Inverno (sem "Festival") |
 | Fireworks Display | Queima de Fogos |
 | New Year's (Party) | Ano-Novo (Festa de Ano-Novo) |
 | New Year's Eve (Party) / the Summit | Réveillon / o cume |
