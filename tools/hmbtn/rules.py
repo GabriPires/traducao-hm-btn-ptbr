@@ -146,7 +146,10 @@ def validate(prefix, en, pt, allowed):
 
 
 def loose_breaks(text):
-    """Pares de linhas em que a 2ª é um pedaço curto da mesma frase que caberia na 1ª."""
+    """Pares de linhas em que a 2ª é um pedaço curto da mesma frase que caberia na 1ª.
+
+    Linhas que começam com número são itens de lista ou placar ("2: Flora"), não frase.
+    """
     pairs = []
     for page in PAGE_BREAK.split(text):
         if PAGE_BREAK.fullmatch(page):
@@ -155,7 +158,8 @@ def loose_breaks(text):
         for a, b in zip(lines, lines[1:]):
             plain_a, plain_b = CODE.sub('', a), CODE.sub('', b)
             if (not plain_a.strip() or not plain_b.strip() or plain_a.startswith(' ')
-                    or plain_b.startswith(' ') or plain_a.rstrip().endswith(SENTENCE_END)):
+                    or plain_b.startswith(' ') or plain_a.rstrip().endswith(SENTENCE_END)
+                    or plain_b[0].isdigit()):
                 continue
             if width(b) <= 10 and width(a) + 1 + width(b) <= MAX_LINE:
                 pairs.append((plain_a.strip(), plain_b.strip()))

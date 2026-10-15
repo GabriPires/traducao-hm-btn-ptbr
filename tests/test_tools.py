@@ -159,7 +159,8 @@ class RulesTest(unittest.TestCase):
         loose = 'Abra a janela e\nnão\nfique perto do fogão.'
         self.assertEqual(self.warnings(loose, en, '{0FF1}'),
                          ["quebra de linha solta: 'Abra a janela e' + 'não' cabem numa linha só"])
-        # frase terminada ou fora da TV: sem aviso
+        # frase terminada, item de lista ou fora da TV: sem aviso
+        self.assertEqual(self.warnings('1: Flora\n2: Mai Lin\n3: Lilly', en, '{0FF1}'), [])
         self.assertEqual(self.warnings('Até a semana.\nTchau.', en, '{0FF1}'), [])
         self.assertEqual(self.warnings(loose, en, '{0FF3}'), [])
 
