@@ -382,6 +382,13 @@ Farmer Fran, Jimmy).
 | New Year's (Party) | Ano-Novo (Festa de Ano-Novo) |
 | New Year's Eve (Party) / the Summit | Réveillon / o cume |
 | Moon Viewing | Contemplação da Lua |
+| moon-view dumplings / moon-view sake | bolinhos da Lua / saquê da Lua |
+| Tomato Festival: Chicken / Sheep / Coconut / Star Team | Time das Galinhas / das Ovelhas / do Coco / da Estrela |
+| hot-pot (Festival da Colheita) | panelão |
+| Opções: convidar para assistir / não convidar | Convidar para assistir / Não convidar |
+| Opções: participar do festival / não participar | Participar do Festival / Não participar do Festival |
+| Opções (Contemplação da Lua): aceitar / recusar e dormir / ficar olhando / voltar para casa e dormir | Certo / Não, vou dormir / Ficar e olhar / Ir para casa dormir |
+| {4018} / {4019} (nome da galinha / da vaca nos festivais) | sem artigo; concorda no feminino ("a vencedora é {4019}") |
 
 ### Comidas (como aparecem nos menus)
 
