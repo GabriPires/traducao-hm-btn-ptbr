@@ -162,6 +162,9 @@ class RulesTest(unittest.TestCase):
         # frase terminada, item de lista ou fora da TV: sem aviso
         self.assertEqual(self.warnings('1: Flora\n2: Mai Lin\n3: Lilly', en, '{0FF1}'), [])
         self.assertEqual(self.warnings('Até a semana.\nTchau.', en, '{0FF1}'), [])
+        # título do programa, cabeçalho seguido de fala ou de pensamento: sem aviso
+        self.assertEqual(self.warnings('~ Programa ~\nCapítulo 2', en, '{0FF1}'), [])
+        self.assertEqual(self.warnings('Capítulo 9\n"!!!"\nEle disse\n(Ué?)', en, '{0FF1}'), [])
         self.assertEqual(self.warnings(loose, en, '{0FF3}'), [])
 
 

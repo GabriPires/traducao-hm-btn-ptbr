@@ -150,6 +150,9 @@ Os programas (subarquivo 05) são textos longos e corridos, muitos perto do limi
   (errado: "…ao ver TV e / não / fique perto da tela"). O `check` avisa ("quebra de
   linha solta"): resolva esse aviso também.
 - Nomes dos programas: os do glossário, que são os do menu de canais.
+- Títulos e cabeçalhos ("~ A Fada e Eu ~", "Capítulo 2", "Episódio 5") e falas curtas
+  como `"……"` ou `"!!! ???"` ficam **em linhas próprias**, como no original. Não junte
+  linhas para ganhar espaço: o limite é de linhas do original, e quase sempre sobra.
 
 ## Textos do executável (`exe.json`)
 
@@ -216,7 +219,11 @@ cada código e conferida pelas falas em que os personagens se apresentam.
 - Mantenha tiques de fala e onomatopeias inventadas (o "budum" de um personagem).
   Interjeições: Wow → Uau, Ouch → Ai, Hmm → Hum, Ahem (pigarro) → Hum, hum (não use
   "Aham" para pigarro: em português ele significa "sim", e é a tradução certa de
-  "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac.
+  "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac, Sigh → Ai, ai (não
+  "Ufa", que é alívio), Yes! (comemorando) → Isso! / Oba!
+- Gestos: nod → **fazer que sim** com a cabeça; shake one's head → fazer que não
+  ("balancei a cabeça" sozinho soa como "não"). Borrow → **pegar emprestado**
+  (emprestar é dar emprestado).
 - Falas iguais em inglês recebem traduções iguais, salvo quando o contexto pede outra.
 - Mensagens sem retrato que falam com o jogador ("You don't have any…", "Your barn is
   full…") ficam no **neutro ou em "você"**, como o original ("Você não tem…", "O
@@ -292,6 +299,8 @@ Farmer Fran, Jimmy).
 | Ultror Change / Ultror Combine / Ultror Suit | Transformação Ultror / União Ultror / Traje Ultror |
 | Ultror Slash / Super Ultror Blade | Corte Ultror / Super Lâmina Ultror |
 | Episode / To be continued… / Next time: / See you next time! | Episódio / Continua… / No próximo episódio: / Até a próxima! |
+| The Fairy and Me: His Story / Her Story / Their Story | A Fada e Eu: A História Dele / A História Dela / A História dos Dois |
+| Chapter / The End / aviso do dia em que passa | Capítulo / Fim / Às segundas, neste canal. |
 | aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
 | wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
 | F-3.14 World Grand Prix / Round (da corrida) | Grande Prêmio Mundial de F-3.14 / etapa |

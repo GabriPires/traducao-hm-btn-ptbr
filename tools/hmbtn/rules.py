@@ -20,7 +20,8 @@ NAME_WIDTH = 8          # espaço reservado na linha para cada nome variável
 APOSTROPHE = '008D'     # apóstrofo cru: pode sumir na tradução
 SHORT_RATIO = 0.7       # abaixo disso (em textos longos), a tradução provavelmente cortou conteúdo
 TV_PREFIX = '{0FF1}'    # programas de TV: texto corrido, longo
-SENTENCE_END = tuple('.!?…:;)"\'♥')
+SENTENCE_END = tuple('.!?…:;)"\'♥~')
+NEW_UTTERANCE = tuple('"(')
 
 CODE = re.compile(r'\{([^{}]*)\}')
 PAGE_BREAK = re.compile(r'(\{0FFC\}\{0FF[AB]\})')
@@ -148,7 +149,8 @@ def validate(prefix, en, pt, allowed):
 def loose_breaks(text):
     """Pares de linhas em que a 2ª é um pedaço curto da mesma frase que caberia na 1ª.
 
-    Linhas que começam com número são itens de lista ou placar ("2: Flora"), não frase.
+    Não contam: linhas que começam com número (itens de lista ou placar, "2: Flora"),
+    linhas que abrem fala ou pensamento ('"' ou '(') e títulos ("~ Programa ~").
     """
     pairs = []
     for page in PAGE_BREAK.split(text):
@@ -159,7 +161,7 @@ def loose_breaks(text):
             plain_a, plain_b = CODE.sub('', a), CODE.sub('', b)
             if (not plain_a.strip() or not plain_b.strip() or plain_a.startswith(' ')
                     or plain_b.startswith(' ') or plain_a.rstrip().endswith(SENTENCE_END)
-                    or plain_b[0].isdigit()):
+                    or plain_b[0].isdigit() or plain_b.startswith(NEW_UTTERANCE)):
                 continue
             if width(b) <= 10 and width(a) + 1 + width(b) <= MAX_LINE:
                 pairs.append((plain_a.strip(), plain_b.strip()))
