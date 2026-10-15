@@ -165,6 +165,8 @@ class RulesTest(unittest.TestCase):
         # título do programa, cabeçalho seguido de fala ou de pensamento: sem aviso
         self.assertEqual(self.warnings('~ Programa ~\nCapítulo 2', en, '{0FF1}'), [])
         self.assertEqual(self.warnings('Capítulo 9\n"!!!"\nEle disse\n(Ué?)', en, '{0FF1}'), [])
+        # versos de música começam com maiúscula
+        self.assertEqual(self.warnings('E vai mexendo\nMexe, mexe', en, '{0FF1}'), [])
         self.assertEqual(self.warnings(loose, en, '{0FF3}'), [])
 
 

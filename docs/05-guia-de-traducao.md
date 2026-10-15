@@ -220,7 +220,7 @@ cada código e conferida pelas falas em que os personagens se apresentam.
   Interjeições: Wow → Uau, Ouch → Ai, Hmm → Hum, Ahem (pigarro) → Hum, hum (não use
   "Aham" para pigarro: em português ele significa "sim", e é a tradução certa de
   "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac, Sigh → Ai, ai (não
-  "Ufa", que é alívio), Yes! (comemorando) → Isso! / Oba!
+  "Ufa", que é alívio), Yes! (comemorando) → Isso! / Oba!, sirene de ambulância → Uó-uó.
 - Gestos: nod → **fazer que sim** com a cabeça; shake one's head → fazer que não
   ("balancei a cabeça" sozinho soa como "não"). Borrow → **pegar emprestado**
   (emprestar é dar emprestado).
@@ -301,6 +301,12 @@ Farmer Fran, Jimmy).
 | Episode / To be continued… / Next time: / See you next time! | Episódio / Continua… / No próximo episódio: / Até a próxima! |
 | The Fairy and Me: His Story / Her Story / Their Story | A Fada e Eu: A História Dele / A História Dela / A História dos Dois |
 | Chapter / The End / aviso do dia em que passa | Capítulo / Fim / Às segundas, neste canal. |
+| Shogi: Pawn / Rook / Bishop / Knight / Lance / Silver General | Peão / Torre / Bispo / Cavalo / Lança / General de Prata |
+| Shogi: Promoted X / The same X / First… / Second… / 100-dan | X promovido(a) / Idem, X / Primeiro… / Segundo… / 100 dan |
+| TV Shopping: frase de abertura / frase de fechamento (pedido para ligar) | Compras pela TV: "Hoje o produto é este!" / "Se quiser este item, ligue hoje mesmo!" |
+| New Year's Special TV: / Year-End Special TV: | Especial de Ano-Novo: / Especial de Fim de Ano: |
+| Calligraphy / Pounding Mochi / Parlor Trick Party / Polar Bear Swim / Cooking DX! / Snowball Fight | Caligrafia / Pilando Mochi / Festa de Truques / Mergulho no Gelo / Culinária DX! / Guerra de Bolas de Neve |
+| Previsão do tempo: frase de abertura | Esta é a previsão do tempo para amanhã! |
 | aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
 | wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
 | F-3.14 World Grand Prix / Round (da corrida) | Grande Prêmio Mundial de F-3.14 / etapa |
