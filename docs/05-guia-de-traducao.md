@@ -296,6 +296,8 @@ Farmer Fran, Jimmy).
 | wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
 | F-3.14 World Grand Prix / Round (da corrida) | Grande Prêmio Mundial de F-3.14 / etapa |
 | Sports Battle! / Results / Total points | Batalha dos Esportes! / Resultados / Pontuação total |
+| The Song Hour: abertura do programa / apresentação do convidado / Clap-clap… | Hora da Canção: "Mais uma semana se passou…" / "Hoje recebemos…" / Palmas, palmas… |
+| The Delicious Hour (apresentadora Naru) / Ingredients / Utensils / Seasoning | Hora Deliciosa / Ingredientes / Utensílios / Tempero |
 | 1st: Flora (tabelas de classificação) | 1: Flora (a fonte não tem "º"; no meio da frase, "primeiro lugar") |
 | Grass / Grass seeds (pasto que vira Feno) | Capim / Sementes de capim |
 | Blue / Red / Green grass (ervas da montanha) | Erva azul / Erva vermelha / Erva verde |
