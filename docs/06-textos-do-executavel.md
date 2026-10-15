@@ -88,7 +88,7 @@ um texto não cabe, ele cresce **pegando espaço dos vizinhos**, num grupo reorg
 | `"Yes\nNo"` + Diary | "Sim/Não" nos diários; "Diary {4001}" vira "Jogo {4001}" (overlay 15) |
 | No + 65 comidas | "Não" na configuração e nomes completos das comidas. A **tabela de receitas** do executável (entradas de 32 bytes em `0x40B40`–`0x4175F`, nome no fim de cada entrada) é a única referência aos nomes de comida |
 | Maximum + grades do teclado | "Símbolos", "Espaço" e "ABC" na tela de nomes. As duas grades são achadas por `addiu` no próprio executável (`0x80023D60` e `0x80023D6C`), e o código só as desenha: a letra digitada vem de outro lugar |
-| Lojas **(?)** | Ferraria, Pousada/bar, Vinícola e Rancho (ver abaixo) |
+| Lojas | Ferraria, Pousada/bar, Vinícola e Rancho: nomes achados por endereços somados no overlay 11 (ver abaixo) |
 
 **Referências derivadas.** O diário (overlay 15) guarda o endereço de "Diary" num
 registrador e acha as mensagens de diário vazio e de falta de espaço somando um
@@ -96,16 +96,22 @@ deslocamento a ele (`addiu v1,s6,-0x13A` etc.). Quando "Diary" anda, essas instr
 precisam compensar, senão as mensagens começam uma letra depois ("Vazio" aparecia como
 "azio"). O grupo lista essas instruções em `derivados`, e o `build` as corrige.
 
-**Lojas (hipótese).** Com uma loja aberta, a RAM tem uma lista de ponteiros para os
-nomes dos itens, montada na hora. Nenhuma origem foi achada: nem tabela de ponteiros ou
-de deslocamentos (no disco ou na RAM, em vários formatos e passos), nem instruções com
-os endereços. A hipótese é que o jogo ache os nomes pela ordem, contando terminadores.
-Os grupos das lojas (`por_contagem`) só reorganizam vizinhos e mantêm a contagem; se a
-hipótese estiver errada, um nome aparece cortado ou vazio no jogo. **A confirmar.**
+**Endereços somados (lojas).** O código soma ao endereço do texto um valor guardado na
+memória. Em geral é a palavra de `0x80054BBC`, que vale zero na versão americana (deve
+ser o "deslocamento do idioma" da versão europeia, que tinha vários idiomas; daí as
+letras alemãs na fonte). Alguns menus usam a palavra seguinte, `0x80054BC0`, que vale
+`0x2C3A` (`exetext.BASE_WORD` e `BASE_DELTA`): o `addiu` monta `endereço - 0x2C3A`, e por
+isso uma busca pelo endereço do texto não acha nada.
 
-Detalhe curioso: o código sempre soma ao endereço do texto um valor guardado em
-`0x80054BBC`, que vale zero na versão americana. Deve ser o "deslocamento do idioma" da
-versão europeia (que tinha vários idiomas; daí as letras alemãs na fonte).
+As lojas funcionam assim. No overlay 11, a função de cada loja faz `lui 0x8005` +
+`addiu` para o primeiro nome, soma a palavra de `0x80054BC0` e guarda o ponteiro numa
+lista. Os nomes seguintes saem de `addiu` sobre o registrador que já tem o primeiro
+(`addiu v0,a1,0x12` = 9 letras depois). Uma primeira hipótese, de que o jogo contava
+terminadores, foi derrubada no jogo: os nomes apareciam cortados ("scova") ou vazios.
+Cada grupo de loja lista essas instruções em `somados` (base: o `lui` ou o id do texto
+que já está no registrador). O `build` recalcula cada uma, inclusive quando a base também
+anda. A varredura foi feita em todos os subarquivos e no executável, e só o overlay 11
+acha esses textos. O teste refaz a conta de cada instrução sobre o resultado.
 
 ## Textos que entram no meio das falas
 
@@ -150,12 +156,27 @@ O cabeçalho do calendário (overlay 11, função em `0x428AC`) desenha o númer
 `exetext.OVERLAY_PATCHES` troca as posições: "Ano" em `0x1F` e o número (2 casas,
 alinhado à direita) em `0x3B`, o que dá "Ano 1" e "Ano 10".
 
+## Diário: data de cada jogo
+
+A tela de carregar e salvar (overlay 15, a partir de `0x9100`) monta a data num buffer
+de `0x28` bytes, preenchido antes com `0xFF`: ano em `+0x00`, estação em `+0x0A` e dia
+em `+0x1A`, ligados às variáveis `{4002}`, `{4003}` e `{4004}` da frase
+`exe-80051D9E`. Havia dois problemas, corrigidos em `exetext.OVERLAY_PATCHES`:
+
+- a estação tinha 8 letras de espaço, e o dia, escrito depois, apagava o fim de
+  "Primavera" ("Primaver 4"). O dia passou para `+0x1E`: estação com até 9 letras +
+  `FFFF`, dia com 2 casas + `FFFF` até `+0x24`;
+- o dia era escrito com o ordinal ("4th"), por uma função do próprio overlay
+  (`0x8013703C`) que chama a do número (`0x8001A970`) e depois copia o ordinal. Como os
+  ordinais viraram espaços, sobrava "4   de". A chamada vai direto para a função do
+  número, que recebe os mesmos argumentos.
+
 ## Pendências
 
 - **Lojas:** os 10 itens que faltavam (`Wine`, `Brush`, `Milker`, `Milk`, `Snowcone`,
-  `Salad`, `Buy/Sell cow/sheep`) foram traduzidos com os grupos `por_contagem`, a
-  confirmar no jogo. Abreviação de cardápio: "Ordenh." (Ordenhadeira; a coluna do nome
-  na Ferraria tem 8 letras). Comprar e vender animais viraram "Vaca", "Ovelha", "Vender
+  `Salad`, `Buy/Sell cow/sheep`) foram traduzidos com os grupos `somados`, a confirmar
+  no jogo. Abreviação de cardápio: "Ordenh." (Ordenhadeira; a coluna do nome na
+  Ferraria tem 8 letras). Comprar e vender animais viraram "Vaca", "Ovelha", "Vender
   vaca", "Vender ovelha".
 - **Relógio:** "AM"/"PM" continuam (não estão nos blocos de texto; provavelmente são
   desenhos). Em português o uso é entendido.

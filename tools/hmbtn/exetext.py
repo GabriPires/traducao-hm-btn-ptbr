@@ -83,32 +83,59 @@ GROUPS = (
      'ids': ('exe-800537A2', 'exe-800537B2', 'exe-80053888'),
      'refs': {'exe-800537B2': [('exe', 0x80023D60)], 'exe-80053888': [('exe', 0x80023D6C)]},
      'sem_referencia': set()},
-    # Lojas (?): a lista de itens é montada em tempo de execução com ponteiros para estes
-    # textos, mas nenhuma tabela de ponteiros ou deslocamentos foi achada (nem no disco,
-    # nem na RAM com a loja aberta). A hipótese é que o jogo ache cada nome pela ordem,
-    # contando terminadores: por isso estes grupos só reorganizam textos vizinhos e mantêm
-    # a contagem. A confirmar no jogo; se falhar, um nome aparece cortado ou vazio.
+    # Lojas: o overlay 11 monta a lista de itens com endereços SOMADOS (BASE_WORD): cada
+    # instrução de `somados` é um addiu cuja base é o "lui 0x8005" (número) ou o endereço
+    # de outro nome que já está no registrador (id). Varredura feita em todos os
+    # subarquivos e no executável: só o overlay 11 acha estes textos.
     {'nome': 'Ferraria: Comprar, Escova, Ordenhadeira, Tesoura',
      'ids': ('exe-80054772', 'exe-80054784', 'exe-80054790', 'exe-8005479E'),
-     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+     'refs': {}, 'sem_referencia': set(),
+     'somados': {'exe-80054772': [('ov11', 0x63688, 0x80050000)],
+                 'exe-80054784': [('ov11', 0x636DC, 'exe-80054772')],
+                 'exe-80054790': [('ov11', 0x63750, 0x80050000)],
+                 'exe-8005479E': [('ov11', 0x6379C, 0x80050000)]}},
     {'nome': 'Pousada e bar: cardápio do dia, bebidas, Leite, Raspadinha',
      'ids': ('exe-800547CA', 'exe-800547DC', 'exe-800547E8', 'exe-800547FC', 'exe-80054812',
              'exe-80054820', 'exe-8005482C', 'exe-80054846', 'exe-80054866', 'exe-80054870'),
-     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+     'refs': {}, 'sem_referencia': set(),
+     'somados': {'exe-800547CA': [('ov11', 0x5FA54, 0x80050000)],
+                 'exe-800547DC': [('ov11', 0x5FA84, 'exe-800547CA')],
+                 'exe-800547E8': [('ov11', 0x5FAB4, 'exe-800547CA')],
+                 'exe-800547FC': [('ov11', 0x5FAE4, 'exe-800547CA')],
+                 'exe-80054812': [('ov11', 0x5FB14, 'exe-800547CA')],
+                 'exe-80054820': [('ov11', 0x5FB8C, 0x80050000), ('ov11', 0x5FD3C, 'exe-80054870')],
+                 'exe-8005482C': [('ov11', 0x5F9A4, 0x80050000)],
+                 'exe-80054846': [('ov11', 0x5F9D4, 'exe-8005482C')],
+                 'exe-80054866': [('ov11', 0x5FA04, 'exe-8005482C')],
+                 'exe-80054870': [('ov11', 0x5FD08, 0x80050000)]}},
     {'nome': 'Vinícola: Sem. capim, Vinho, Suco de uva',
      'ids': ('exe-800546CA', 'exe-800546E2', 'exe-800546EC'),
-     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+     'refs': {}, 'sem_referencia': set(),
+     'somados': {'exe-800546CA': [('ov11', 0x62CF8, 0x80050000), ('ov11', 0x62EC0, 0x80050000),
+                                  ('ov11', 0x63068, 'exe-80054454')],
+                 'exe-800546E2': [('ov11', 0x63460, 0x80050000)],
+                 'exe-800546EC': [('ov11', 0x6346C, 'exe-800546E2')]}},
     {'nome': 'Rancho: comprar e vender vaca e ovelha',
      'ids': ('exe-80054B0A', 'exe-80054B1A', 'exe-80054B2E', 'exe-80054B40'),
-     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+     'refs': {}, 'sem_referencia': set(),
+     'somados': {'exe-80054B0A': [('ov11', 0x5C03C, 0x80050000)],
+                 'exe-80054B1A': [('ov11', 0x5C074, 'exe-80054B0A')],
+                 'exe-80054B2E': [('ov11', 0x5C0A4, 'exe-80054B0A')],
+                 'exe-80054B40': [('ov11', 0x5C0D0, 'exe-80054B0A')]}},
     {'nome': 'Não da configuração + nomes de comidas',
      'ids': ('exe-80053DD0', 'comidas'), 'refs': 'receitas', 'sem_referencia': set()},
 )
 
 # Textos que o jogo insere no meio das falas: o apelido {400F} ("Honey", "Darling").
 # Precisam ocupar o espaço inteiro, senão o espaço de enchimento aparece na frase
-# ("Amor !"). O código os acha por posição fixa (0x80054BC0 + base), então não andam.
+# ("Amor !"). O código os acha somando BASE_DELTA a uma constante, então não andam.
 EXACT_LENGTH = {'exe-80054396', 'exe-800543A2'}
+
+# Vários menus acham o texto somando uma constante à palavra guardada em BASE_WORD
+# (vale BASE_DELTA no disco americano): endereço = constante + 0x2C3A. A constante sozinha
+# não aponta para o texto, por isso não aparece numa busca direta pelo endereço.
+BASE_WORD = 0x80054BC0
+BASE_DELTA = 0x2C3A
 
 # Remendos fixos fora dos blocos de texto: (endereço, bytes originais, bytes novos).
 # Os bytes originais são conferidos antes de gravar; quando eles são texto em inglês, a
@@ -222,9 +249,18 @@ def patches(table):
 #   Overlay 11, cabeçalho do calendário: o original desenha o número do ano em x=0x1F e
 #   "Year" em x=0x39 ("1st Year"). Em português a ordem é "Ano 1": "Ano" vai para 0x1F e
 #   o número (2 casas, alinhado à direita) para 0x3B.
+#   Overlay 15, data de cada diário: um buffer de 0x28 bytes (preenchido com 0xFF) guarda
+#   o ano em +0x00, a estação em +0x0A e o dia em +0x1A. O espaço da estação (8 letras)
+#   cortava "Primavera" e o dia apagava o fim dela; o dia vai para +0x1E (estação com
+#   até 9 letras + FFFF; dia com 2 casas + FFFF termina em +0x24).
+#   O dia era escrito por uma função do overlay (0x8013703C) que põe o número e depois o
+#   ordinal ("4th"); como os ordinais viraram espaços, sobrava "4   de". A chamada passa a
+#   ir direto para a função do número (0x8001A970, mesmos argumentos), sem o ordinal.
 OVERLAY_PATCHES = (
     (11, 0x428F8, 0x2406001F, 0x2406003B),      # addiu a2,zero,x do número
     (11, 0x42910, 0x24060039, 0x2406001F),      # addiu a2,zero,x de "Year"
+    (15, 0x09174, 0x2610001A, 0x2610001E),      # addiu s0,s0,+0x1A → +0x1E (campo do dia)
+    (15, 0x0918C, 0x0C04DC0F, 0x0C006A5C),      # jal número+ordinal → jal só o número
 )
 
 
@@ -377,16 +413,16 @@ def plan(exe, subfiles, table, translations, allowed):
             continue
         data = bytearray()
         moved = []
+        new_of = {}
         for number, sid in enumerate(ids):
             _, old_address, _ = segs[index[sid]]
             new_address = start + len(data)
+            new_of[sid] = new_address
             chunk = encoded[sid]
             if number == len(ids) - 1:
                 chunk += struct.pack('<H', SPACE) * ((end - new_address - len(chunk)) // 2)
             data += chunk + struct.pack('<H', END)
-            if new_address == old_address:
-                continue
-            if group.get('por_contagem'):
+            if new_address == old_address or sid in group.get('somados', {}):
                 continue
             if sid in group['sem_referencia']:
                 if table.decode(chunk).strip():
@@ -413,6 +449,13 @@ def plan(exe, subfiles, table, translations, allowed):
                     fixes.append(fix)
             if refs != 'receitas':
                 moved.append((sid, old_address))
+        for sid, sums in group.get('somados', {}).items():
+            for target, pos, base in sums:
+                fix = _fix_sum(target, pos, sid, base, segs, index, new_of, subfiles)
+                if isinstance(fix, str):
+                    errors[sid].append(fix)
+                elif fix:
+                    fixes.append(fix)
         for sid, old_address in moved:
             if data[old_address - start:old_address - start + 2] != struct.pack('<H', END):
                 warnings[sid].append('o começo antigo deste texto ficou no meio de outro: se houver '
@@ -438,6 +481,35 @@ def plan(exe, subfiles, table, translations, allowed):
         if sid not in index:
             errors[sid].append('esse texto não existe no executável')
     return writes, fixes, errors, warnings
+
+
+def _fix_sum(target, pos, sid, base, segs, index, new_of, subfiles):
+    """addiu que dá (endereço do texto `sid` - BASE_DELTA) a partir de `base`: o valor do
+    "lui" (número) ou o endereço de outro texto já num registrador (id, que também pode
+    ter andado). Devolve a correção, None se nada mudou, ou uma mensagem de erro."""
+    sub = int(target[2:])
+    word = struct.unpack_from('<I', subfiles[sub], pos)[0]
+    if word >> 26 != 0x09:
+        return f'{target}:{pos:#x} não é uma instrução addiu'
+
+    def old(text_id):
+        return segs[index[text_id]][1]
+
+    def new(text_id):
+        return new_of.get(text_id, old(text_id))
+
+    if isinstance(base, int):
+        old_base, new_base = base, base
+    else:
+        old_base, new_base = old(base) - BASE_DELTA, new(base) - BASE_DELTA
+    if (old_base + _s16(word & 0xFFFF)) & 0xFFFFFFFF != old(sid) - BASE_DELTA:
+        return f'{target}:{pos:#x} não calcula o endereço deste texto'
+    low = (new(sid) - BASE_DELTA) - new_base
+    if not -0x8000 <= low < 0x8000:
+        return f'{target}:{pos:#x}: deslocamento fora do alcance'
+    if low == _s16(word & 0xFFFF):
+        return None
+    return (sub, pos, struct.pack('<I', (word & 0xFFFF0000) | (low & 0xFFFF)))
 
 
 def _fix_derived(target, pos, old_address, new_address, other, subfiles):

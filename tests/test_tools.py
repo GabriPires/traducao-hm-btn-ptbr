@@ -375,6 +375,41 @@ class ExeGroupsTest(unittest.TestCase):
             low = fixed[(15, pos)] & 0xFFFF
             self.assertEqual(diary + (low - 0x10000 if low & 0x8000 else low), target)
 
+    def test_shop_names_found_by_summed_addresses(self):
+        # o overlay 11 acha cada nome com addiu + BASE_DELTA, a partir do "lui" ou de outro
+        # nome no registrador; com os nomes empurrados, cada conta precisa achar o seu
+        exe = bytearray(self.exe)
+        self.assertEqual(struct.unpack_from('<I', exe, exetext.file_offset(exetext.BASE_WORD))[0],
+                         exetext.BASE_DELTA)
+        names = json.loads((ROOT / 'translation' / 'exe.json').read_text(encoding='utf-8'))
+        for group in (g for g in exetext.GROUPS if 'somados' in g):
+            translations = {sid: names[sid] for sid in group['ids'] if sid in names}
+            exe, fixes, errors, _ = self.apply(translations)
+            self.assertEqual(dict(errors), {})
+            ov11 = bytearray(self.subfiles[11])
+            for target, pos, data in fixes:
+                if target == 11:
+                    ov11[pos:pos + 4] = data
+            found = {}
+            refs = [(sid, pos, base) for sid, sums in group['somados'].items() for _, pos, base in sums]
+            for _ in range(len(refs)):            # bases antes de quem soma a partir delas
+                for sid, pos, base in refs:
+                    if isinstance(base, int):
+                        start = base
+                    elif base in group['ids']:
+                        if base not in found:
+                            continue
+                        start = found[base] - exetext.BASE_DELTA
+                    else:
+                        start = int(base[4:], 16) - exetext.BASE_DELTA
+                    low = struct.unpack_from('<I', ov11, pos)[0] & 0xFFFF
+                    address = start + (low - 0x10000 if low & 0x8000 else low) + exetext.BASE_DELTA
+                    self.assertEqual(self.text_at(exe, address).rstrip(),
+                                     translations.get(sid, self.text_at(self.exe, int(sid[4:], 16))).rstrip(),
+                                     f'{sid} em ov11:{pos:#x}')
+                    found[sid] = address
+            self.assertEqual(set(found), set(group['somados']))
+
     def test_keyboard_grid_refs_in_the_exe(self):
         _, fixes, errors, _ = self.apply({'exe-800537A2': 'Máximo'})
         self.assertEqual(dict(errors), {})

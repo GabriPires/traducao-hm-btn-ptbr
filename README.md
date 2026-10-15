@@ -31,7 +31,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Prova de conceito no emulador | ✅ Concluído |
 | Fonte com acentos e cedilha | ✅ Concluído |
 | Caixas de mensagem: falas, placas, cartas, descrições de itens, ajuda, TV (6.011 textos) | ✅ Traduzidos (5.873; os outros 138 são vazios, "Dummy" ou iguais em português) |
-| Textos fixos do executável: nomes de menus, comidas, itens de loja, memory card, dias da semana e estações (387 textos) | ✅ Traduzidos (itens de loja a confirmar no jogo) |
+| Textos fixos do executável: nomes de menus, comidas, itens de loja, memory card, dias da semana e estações (387 textos) | ✅ Traduzidos (lojas e data do diário a confirmar no jogo) |
 | Textos dos minigames (16 textos) | ✅ Traduzidos |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
 | Testes do início ao fim e lançamento | ⏳ Pendente |
