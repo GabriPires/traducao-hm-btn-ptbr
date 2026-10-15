@@ -257,6 +257,18 @@ Farmer Fran, Jimmy).
 | Mineral Clinic / Mineral Beach | Clínica Mineral / Praia Mineral |
 | Wrapping Corner / Cooking Corner (no Supermercado) | Balcão de Embrulhos / Setor de Culinária |
 | TV Shopping (programa) | Compras pela TV |
+| Weather Report / News / Life on the Farm (canais fixos da TV) | Previsão do Tempo / Notícias / Vida na Fazenda |
+| The Fairy and Me / The Delicious Hour / The Song Hour (TV) | A Fada e Eu / Hora Deliciosa / Hora da Canção |
+| Star One Sports / What's Your Passion? / The Shogi Hour (TV) | Esportes Star One / Qual é Sua Paixão? / Hora do Shogi |
+| Year-End Special TV / New Year's Special TV | Especial de Fim de Ano / Especial de Ano-Novo |
+| Mechabot Ultror (TV) | Mechabot Ultror |
+| Grass / Grass seeds (pasto que vira Feno) | Capim / Sementes de capim |
+| Blue / Red / Green grass (ervas da montanha) | Erva azul / Erva vermelha / Erva verde |
+| Fishing pole (vara dos profissionais) | Vara de Pesca avançada |
+| Stag beetle / Atlas beetle | besouro-cervo / besouro-atlas |
+| Mystic Berry | Fruta Mística |
+| household ledger | livro-caixa |
+| Picture Book of People | Livro Ilustrado de Pessoas |
 | Snowcone | Raspadinha |
 | D button / {006E} button (textos de ajuda) | Direcional / Botão {006E} |
 | Memory Card | MEMORY CARD, no masculino ("o MEMORY CARD", "Salvando no MEMORY CARD") |
@@ -318,6 +330,10 @@ batata"), na descrição escreva por extenso ("Sementes de batata"). Comidas que
 | Mayonnaise L | Maionese G |
 | Mayonnaise XL | Maionese GG |
 | Salad | Salada |
+| Set meal | Refeição (nas falas, "prato do dia") |
+| Pasta (Cabana da Praia) | Massa |
+| Grape Liquor / Wild grape wine (Pousada) | Licor de uva |
+| Spa-boiled egg | Ovo cozido na fonte |
 | Stew | Ensopado |
 | Miso soup | Missoshiru |
 | Stir fry | Refogado |
