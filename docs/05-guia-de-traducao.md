@@ -281,6 +281,12 @@ Farmer Fran, Jimmy).
 | Star One Sports / What's Your Passion? / The Shogi Hour (TV) | Esportes Star One / Qual é Sua Paixão? / Hora do Shogi |
 | Year-End Special TV / New Year's Special TV | Especial de Fim de Ano / Especial de Ano-Novo |
 | Mechabot Ultror (TV) | Mechabot Ultror |
+| Justa Hasbin, Mako Mizuta, Wada Hunk, Luckman, Polyphenol Love (TV) | iguais (Mako Mizuta, mesmo onde o original erra "Mizuda") |
+| local feature show / Faraway Lands (TV) | programa de reportagens locais / Terras Distantes |
+| Leaf City / Golden City / Flower Garden City / Walnut City (TV) | Cidade da Folha / Cidade Dourada / Cidade Jardim Florido / Cidade da Nogueira |
+| Pear Tree City / Nut City / Twig Town / Happy Town (TV) | Cidade da Pereira / Cidade da Noz / Vila do Galho / Vila Feliz |
+| Twilight Paradise / Northernmost Prison / Popo Valley (TV) | Paraíso do Crepúsculo / Prisão do Extremo Norte / Vale Popo |
+| SUGDW apple | maçã SUGDW (por extenso só onde o original explica a sigla) |
 | Grass / Grass seeds (pasto que vira Feno) | Capim / Sementes de capim |
 | Blue / Red / Green grass (ervas da montanha) | Erva azul / Erva vermelha / Erva verde |
 | Fishing pole (vara dos profissionais) | Vara de Pesca avançada |
