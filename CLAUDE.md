@@ -37,6 +37,7 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - `tools/hmbtn/rules.py`: regras de uma fala traduzida (códigos, caracteres, linhas, páginas); usadas por `check` e `build`
 - `docs/05-guia-de-traducao.md`: regras, estilo e glossário (fonte única); `prompts/agente-tradutor.md`: prompt do agente tradutor, aponta para o guia. Termos novos aprovados na revisão vão para o glossário do guia
 - `docs/06-textos-do-executavel.md` + `tools/hmbtn/exetext.py`: 387 textos do executável, traduzidos NO LUGAR (nunca maiores que o original, completados com espaços); ids `exe-ENDEREÇO`; referências só parcialmente mapeadas
+- Remendos de código: `exetext.patches` (dias da semana e estações lidos byte a byte, texto das cerimônias) e `exetext.OVERLAY_PATCHES` (calendário "Ano 1"); `tools/hmbtn/mips.py` monta o código e, nos testes, roda as funções num interpretador mínimo
 - Textos do executável que precisam crescer: grupos reorganizados em `exetext.GROUPS` (vizinhos regravados em sequência, referências conhecidas corrigidas, mesmo número de terminadores); `exetext.plan` é usado por `check` e `build`. Não há espaço livre comprovado no executável
 - `build --translation PASTA`: gera a imagem a partir de outra pasta (útil se o lote em andamento do agente tiver erro)
 - Testes de tradução no emulador: usar save do memory card (diário), nunca save state (congela RAM/VRAM antigas)

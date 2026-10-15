@@ -9,9 +9,12 @@ continua começando e terminando no mesmo endereço. Se a tradução for mais cu
 fim é completado com espaços antes do FFFF; nunca pode ser mais longa.
 """
 
+import hashlib
 import re
 import struct
 from collections import defaultdict
+
+from . import mips
 
 EXE_BASE = 0x80010000           # endereço da RAM onde o corpo do executável é carregado
 HEADER = 0x800                  # cabeçalho PS-X EXE antes do corpo
@@ -70,7 +73,34 @@ GROUPS = (
      'sem_referencia': set()},
     {'nome': 'Sim/Não dos diários + "Diary"',
      'ids': ('exe-80051D80', 'exe-80051D8E'), 'refs': {'exe-80051D8E': [('ov15', 0x08F40)]},
+     'sem_referencia': set(),
+     # o overlay 15 guarda o endereço de "Diary" num registrador e acha outras mensagens
+     # somando um deslocamento a ele: elas precisam continuar no mesmo lugar
+     'derivados': {'exe-80051D8E': [('ov15', 0x08FCC, 0x80051C54), ('ov15', 0x08FE8, 0x80051C54),
+                                    ('ov15', 0x0901C, 0x80051C54), ('ov15', 0x09000, 0x80051C66),
+                                    ('ov15', 0x09030, 0x80051C92)]}},
+    {'nome': 'teclado da tela de nomes: Máximo + as duas grades de letras',
+     'ids': ('exe-800537A2', 'exe-800537B2', 'exe-80053888'),
+     'refs': {'exe-800537B2': [('exe', 0x80023D60)], 'exe-80053888': [('exe', 0x80023D6C)]},
      'sem_referencia': set()},
+    # Lojas (?): a lista de itens é montada em tempo de execução com ponteiros para estes
+    # textos, mas nenhuma tabela de ponteiros ou deslocamentos foi achada (nem no disco,
+    # nem na RAM com a loja aberta). A hipótese é que o jogo ache cada nome pela ordem,
+    # contando terminadores: por isso estes grupos só reorganizam textos vizinhos e mantêm
+    # a contagem. A confirmar no jogo; se falhar, um nome aparece cortado ou vazio.
+    {'nome': 'Ferraria: Comprar, Escova, Ordenhadeira, Tesoura',
+     'ids': ('exe-80054772', 'exe-80054784', 'exe-80054790', 'exe-8005479E'),
+     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+    {'nome': 'Pousada e bar: cardápio do dia, bebidas, Leite, Raspadinha',
+     'ids': ('exe-800547CA', 'exe-800547DC', 'exe-800547E8', 'exe-800547FC', 'exe-80054812',
+             'exe-80054820', 'exe-8005482C', 'exe-80054846', 'exe-80054866', 'exe-80054870'),
+     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+    {'nome': 'Vinícola: Sem. capim, Vinho, Suco de uva',
+     'ids': ('exe-800546CA', 'exe-800546E2', 'exe-800546EC'),
+     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
+    {'nome': 'Rancho: comprar e vender vaca e ovelha',
+     'ids': ('exe-80054B0A', 'exe-80054B1A', 'exe-80054B2E', 'exe-80054B40'),
+     'refs': {}, 'sem_referencia': set(), 'por_contagem': True},
     {'nome': 'Não da configuração + nomes de comidas',
      'ids': ('exe-80053DD0', 'comidas'), 'refs': 'receitas', 'sem_referencia': set()},
 )
@@ -81,18 +111,138 @@ GROUPS = (
 EXACT_LENGTH = {'exe-80054396', 'exe-800543A2'}
 
 # Remendos fixos fora dos blocos de texto: (endereço, bytes originais, bytes novos).
-#   0x80049084: o que o jogo cola depois do nome de cada animal nas variáveis
-#   {401B}-{4020} das cerimônias: "'s" + quebra de linha. Em português fica só a quebra.
-PATCHES = (
-    (0x80049084, struct.pack('<3H', 0x0051, 0xFFFE, END), struct.pack('<3H', 0xFFFE, END, END)),
+# Os bytes originais são conferidos antes de gravar; quando eles são texto em inglês, a
+# conferência é pelo SHA-1 (o repositório não guarda o texto original).
+#
+# 1) Dias da semana e estações (calendário, relógio, diário e a variável de data).
+#    No original, duas funções copiam o nome de uma tabela de largura fixa: estações com
+#    6 letras ("Fall" + 2 espaços) em 0x8004908C e dias com 3 letras em 0x800490BC, cada
+#    letra um valor de 16 bits. "Primavera" não cabe em 6. As funções são reescritas
+#    (mesmo tamanho, 15 instruções) para ler uma letra por BYTE, o que dobra o espaço:
+#    estações com até 9 letras (tamanho livre, terminadas em 0xFF) e dias com 3.
+# 2) Animais nas cerimônias ({401B}-{4020}): o jogo cola o texto de 0x80049084 depois
+#    do nome de cada animal: "'s" + quebra. Em português fica só a quebra. Ele fica no
+#    mesmo trecho, logo antes das estações, e é gravado junto.
+SEASON_NAMES = ('Primavera', 'Verão', 'Outono', 'Inverno')
+WEEKDAY_NAMES = ('Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb')
+SEASON_FN, WEEKDAY_FN = 0x8001AA7C, 0x8001AAB8
+NAMES_AREA = (0x80049084, 0x800490E8)
+NAMES_AREA_SHA1 = '615bf07e510f8424744b1cdd56d72eee4fffbf2a'
+SEASONS_AT = 0x80049088          # logo depois de "quebra + FFFF"
+SEASON_STRIDE = 10               # 9 letras + o fim (0xFF)
+WEEKDAYS_AT = SEASONS_AT + 4 * SEASON_STRIDE
+NAMES_END = 0xFF
+SEASON_FN_ORIGINAL = (0x00041840, 0x00641821, 0x00031880, 0x3C028005, 0x2442908C, 0x00621821,
+                      0x24040005, 0x94620000, 0x24630002, 0x2484FFFF, 0xA4A20000, 0x0481FFFB,
+                      0x24A50002, 0x03E00008, 0x00A01021)
+WEEKDAY_FN_ORIGINAL = (0x00041840, 0x00641821, 0x00031840, 0x3C028005, 0x244290BC, 0x00621821,
+                       0x24040002, 0x94620000, 0x24630002, 0x2484FFFF, 0xA4A20000, 0x0481FFFB,
+                       0x24A50002, 0x03E00008, 0x00A01021)
+
+
+def _low(address):
+    """Parte baixa de um endereço montado com lui 0x8005 + deslocamento com sinal."""
+    return address - 0x80050000
+
+
+def season_function():
+    """a0 = estação (0-3), a1 = destino. Copia até o 0xFF; devolve o fim em v0."""
+    return mips.assemble([
+        mips.sll('v1', 'a0', 3),
+        mips.sll('v0', 'a0', 1),
+        mips.addu('v1', 'v1', 'v0'),                    # v1 = estação * 10
+        mips.lui('v0', 0x8005),
+        mips.addu('v1', 'v1', 'v0'),
+        mips.addiu('a0', 'zero', NAMES_END),
+        mips.lbu('v0', _low(SEASONS_AT), 'v1'),         # laço:
+        mips.addiu('v1', 'v1', 1),
+        mips.beq('v0', 'a0', 4),                        # fim do nome -> retorna
+        mips.nop(),
+        mips.sh('v0', 0, 'a1'),
+        mips.beq('zero', 'zero', -6),                   # volta ao laço
+        mips.addiu('a1', 'a1', 2),
+        mips.jr('ra'),
+        mips.addu('v0', 'a1', 'zero'),
+    ])
+
+
+def weekday_function():
+    """a0 = dia (0-6), a1 = destino. Copia 3 letras; devolve o fim em v0."""
+    return mips.assemble([
+        mips.sll('v1', 'a0', 1),
+        mips.addu('v1', 'v1', 'a0'),                    # v1 = dia * 3
+        mips.lui('v0', 0x8005),
+        mips.addu('v1', 'v1', 'v0'),
+        mips.addiu('a0', 'zero', 2),
+        mips.lbu('v0', _low(WEEKDAYS_AT), 'v1'),        # laço:
+        mips.addiu('v1', 'v1', 1),
+        mips.addiu('a0', 'a0', -1),
+        mips.sh('v0', 0, 'a1'),
+        mips.bgez('a0', -5),
+        mips.addiu('a1', 'a1', 2),
+        mips.jr('ra'),
+        mips.addu('v0', 'a1', 'zero'),
+        mips.nop(),
+        mips.nop(),
+    ])
+
+
+def names_area(table):
+    """Bytes novos de NAMES_AREA: quebra das cerimônias, estações e dias da semana."""
+    def letters(name, size):
+        codes = [table.encode(ch) for ch in name]
+        if any(len(code) != 2 or code[1] for code in codes):
+            raise ValueError(f'"{name}": só letras de código menor que 0x100')
+        if len(codes) > size:
+            raise ValueError(f'"{name}": mais de {size} letras')
+        return bytes(code[0] for code in codes)
+    data = struct.pack('<2H', 0xFFFE, END)                                      # cerimônias
+    for name in SEASON_NAMES:
+        data += letters(name, SEASON_STRIDE - 1).ljust(SEASON_STRIDE, bytes([NAMES_END]))
+    for name in WEEKDAY_NAMES:
+        if len(name) != 3:
+            raise ValueError(f'"{name}": o dia da semana precisa ter 3 letras')
+        data += letters(name, 3)
+    size = NAMES_AREA[1] - NAMES_AREA[0]
+    if len(data) > size:
+        raise ValueError('nomes de estações e dias não cabem')
+    return data.ljust(size, b'\0')
+
+
+def patches(table):
+    """Lista de (endereço, conferência, bytes novos); conferência = bytes ou SHA-1."""
+    return [
+        (NAMES_AREA[0], NAMES_AREA_SHA1, names_area(table)),
+        (SEASON_FN, mips.assemble(SEASON_FN_ORIGINAL), season_function()),
+        (WEEKDAY_FN, mips.assemble(WEEKDAY_FN_ORIGINAL), weekday_function()),
+    ]
+
+
+# Remendos de código nos overlays: (subarquivo, posição, palavra original, palavra nova).
+#   Overlay 11, cabeçalho do calendário: o original desenha o número do ano em x=0x1F e
+#   "Year" em x=0x39 ("1st Year"). Em português a ordem é "Ano 1": "Ano" vai para 0x1F e
+#   o número (2 casas, alinhado à direita) para 0x3B.
+OVERLAY_PATCHES = (
+    (11, 0x428F8, 0x2406001F, 0x2406003B),      # addiu a2,zero,x do número
+    (11, 0x42910, 0x24060039, 0x2406001F),      # addiu a2,zero,x de "Year"
 )
 
 
-def apply_patches(exe):
-    """Grava PATCHES no executável (bytearray), conferindo os bytes originais."""
-    for address, old, new in PATCHES:
+def apply_overlay_patches(subfiles):
+    """Grava OVERLAY_PATCHES nos subarquivos, conferindo as palavras originais."""
+    for sub, pos, old, new in OVERLAY_PATCHES:
+        if struct.unpack_from('<I', subfiles[sub], pos)[0] != old:
+            raise ValueError(f'subarquivo {sub}, {pos:#x}: instrução original diferente da esperada')
+        struct.pack_into('<I', subfiles[sub], pos, new)
+
+
+def apply_patches(exe, table):
+    """Grava os remendos no executável (bytearray), conferindo os bytes originais."""
+    for address, check, new in patches(table):
         pos = file_offset(address)
-        if bytes(exe[pos:pos + len(old)]) != old:
+        old = bytes(exe[pos:pos + len(new)])
+        ok = (hashlib.sha1(old).hexdigest() == check) if isinstance(check, str) else old == check
+        if not ok:
             raise ValueError(f'{address:#010x}: bytes originais diferentes do esperado')
         exe[pos:pos + len(new)] = new
 
@@ -236,6 +386,8 @@ def plan(exe, subfiles, table, translations, allowed):
             data += chunk + struct.pack('<H', END)
             if new_address == old_address:
                 continue
+            if group.get('por_contagem'):
+                continue
             if sid in group['sem_referencia']:
                 if table.decode(chunk).strip():
                     errors[sid].append('este texto só pode ficar em branco (ele cede o espaço ao anterior)')
@@ -249,6 +401,12 @@ def plan(exe, subfiles, table, translations, allowed):
                 continue
             for target, pos in targets:
                 fix = _fix(target, pos, old_address, new_address, exe, subfiles)
+                if isinstance(fix, str):
+                    errors[sid].append(fix)
+                else:
+                    fixes.append(fix)
+            for target, pos, other in group.get('derivados', {}).get(sid, []):
+                fix = _fix_derived(target, pos, old_address, new_address, other, subfiles)
                 if isinstance(fix, str):
                     errors[sid].append(fix)
                 else:
@@ -282,6 +440,21 @@ def plan(exe, subfiles, table, translations, allowed):
     return writes, fixes, errors, warnings
 
 
+def _fix_derived(target, pos, old_address, new_address, other, subfiles):
+    """addiu que soma um deslocamento ao endereço de um texto para achar OUTRO texto
+    (`other`, que não andou): quando o primeiro anda, o deslocamento compensa."""
+    sub = int(target[2:])
+    word = struct.unpack_from('<I', subfiles[sub], pos)[0]
+    if word >> 26 != 0x09:
+        return f'{target}:{pos:#x} não é uma instrução addiu'
+    if old_address + _s16(word & 0xFFFF) != other:
+        return f'{target}:{pos:#x} não calcula o endereço {other:#x} a partir deste texto'
+    low = other - new_address
+    if not -0x8000 <= low < 0x8000:
+        return f'{target}:{pos:#x}: deslocamento fora do alcance'
+    return (sub, pos, struct.pack('<I', (word & 0xFFFF0000) | (low & 0xFFFF)))
+
+
 def _fix(target, pos, old_address, new_address, exe, subfiles):
     """Correção de uma referência: (alvo, posição, bytes novos), ou uma mensagem de erro."""
     if target == 'exe16':
@@ -289,8 +462,11 @@ def _fix(target, pos, old_address, new_address, exe, subfiles):
         if TXT_BASE + old != old_address:
             return f'tabela de receitas em {pos:#x} não aponta para este texto'
         return ('exe', pos, struct.pack('<H', new_address - TXT_BASE))
-    sub = int(target[2:])
-    data = subfiles[sub]
+    if target == 'exe':                     # instrução addiu no próprio executável
+        sub, data, pos = 'exe', exe, file_offset(pos)
+    else:
+        sub = int(target[2:])
+        data = subfiles[sub]
     word = struct.unpack_from('<I', data, pos)[0]
     if word >> 26 != 0x09:
         return f'{target}:{pos:#x} não é uma instrução addiu'

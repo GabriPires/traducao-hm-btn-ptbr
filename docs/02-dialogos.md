@@ -82,7 +82,7 @@ O que se sabe pela leitura do código (confirmado no código, não testado no jo
   combina com o código (vacas e ovelhas, ou galinhas), cada um seguido do texto em
   `0x80049084` ("'s" + quebra de linha no original), e enfiam essa lista no meio da
   fala, empurrando o resto. A tradução troca esse texto por uma quebra de linha só
-  (`exetext.PATCHES`).
+  (`exetext.patches`).
 
 Símbolos ainda sem desenho conhecido, que aparecem como `{XXXX}` e devem ser mantidos:
 

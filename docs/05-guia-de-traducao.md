@@ -408,6 +408,9 @@ Farmer Fran, Jimmy).
 | Church / Square (o lugar da vila, também no meio da frase) | Igreja / Praça |
 | pregnant (falando de um animal) | prenhe (pessoa: grávida) |
 | Corridas (06): 1st place… / Ready… / Go! / largada | Primeiro lugar:… / Preparar… / Já! / Atenção, preparar… |
+| Dias da semana (calendário e relógio) | Dom Seg Ter Qua Qui Sex Sáb (em `exetext.WEEKDAY_NAMES`) |
+| Teclado de nomes: Mark / alphabet / Space / OK | Símbolos / ABC / Espaço / OK |
+| Lojas: Buy cow / Buy sheep / Sell cow / Sell sheep / Milker (menu) | Vaca / Ovelha / Vender vaca / Vender ovelha / Ordenh. |
 | Opções: Got it / Explain that again | Entendi / Explicar de novo |
 | Ingredientes (butter, sugar, salt…) | minúscula; só utensílios e itens de loja com maiúscula (Faca, Panela) |
 

@@ -87,6 +87,21 @@ um texto não cabe, ele cresce **pegando espaço dos vizinhos**, num grupo reorg
 | List, Help, Days left | "Lista", "Ajuda", "Faltam" no menu da fazenda (overlay 11) |
 | `"Yes\nNo"` + Diary | "Sim/Não" nos diários; "Diary {4001}" vira "Jogo {4001}" (overlay 15) |
 | No + 65 comidas | "Não" na configuração e nomes completos das comidas. A **tabela de receitas** do executável (entradas de 32 bytes em `0x40B40`–`0x4175F`, nome no fim de cada entrada) é a única referência aos nomes de comida |
+| Maximum + grades do teclado | "Símbolos", "Espaço" e "ABC" na tela de nomes. As duas grades são achadas por `addiu` no próprio executável (`0x80023D60` e `0x80023D6C`), e o código só as desenha: a letra digitada vem de outro lugar |
+| Lojas **(?)** | Ferraria, Pousada/bar, Vinícola e Rancho (ver abaixo) |
+
+**Referências derivadas.** O diário (overlay 15) guarda o endereço de "Diary" num
+registrador e acha as mensagens de diário vazio e de falta de espaço somando um
+deslocamento a ele (`addiu v1,s6,-0x13A` etc.). Quando "Diary" anda, essas instruções
+precisam compensar, senão as mensagens começam uma letra depois ("Vazio" aparecia como
+"azio"). O grupo lista essas instruções em `derivados`, e o `build` as corrige.
+
+**Lojas (hipótese).** Com uma loja aberta, a RAM tem uma lista de ponteiros para os
+nomes dos itens, montada na hora. Nenhuma origem foi achada: nem tabela de ponteiros ou
+de deslocamentos (no disco ou na RAM, em vários formatos e passos), nem instruções com
+os endereços. A hipótese é que o jogo ache os nomes pela ordem, contando terminadores.
+Os grupos das lojas (`por_contagem`) só reorganizam vizinhos e mantêm a contagem; se a
+hipótese estiver errada, um nome aparece cortado ou vazio no jogo. **A confirmar.**
 
 Detalhe curioso: o código sempre soma ao endereço do texto um valor guardado em
 `0x80054BBC`, que vale zero na versão americana. Deve ser o "deslocamento do idioma" da
@@ -101,22 +116,54 @@ versão europeia (que tinha vários idiomas; daí as letras alemãs na fonte).
   nas falas (`Meu bem / Lindo / Querido`) precisam usar as mesmas palavras.
 - **Animais nas cerimônias** (`{401B}`–`{4020}`): o jogo cola o texto de `0x80049084`
   depois de cada nome. Ele fica fora dos blocos de texto, e o `build` o troca por um
-  remendo fixo (`exetext.PATCHES`, que confere os bytes originais antes de gravar):
+  remendo fixo (`exetext.patches`, que confere os bytes originais antes de gravar):
   `"'s" + quebra` vira só `quebra`. Só uma instrução do executável lê esse endereço.
+
+## Dias da semana e estações (remendo de código)
+
+Calendário, relógio, diário e a variável de data (`{4003}`) pegam os nomes de duas
+funções do executável, logo depois do texto das cerimônias:
+
+| Função | Original | Tabela original |
+|---|---|---|
+| `0x8001AA7C` (estação 0–3) | copia 6 letras de 16 bits | `0x8004908C`, 6 letras por nome ("Fall" + 2 espaços) |
+| `0x8001AAB8` (dia 0–6) | copia 3 letras de 16 bits | `0x800490BC`, 3 letras por nome |
+
+"Primavera" não cabe em 6, e não há espaço livre comprovado para uma tabela maior. Mas
+todas as letras usadas têm código menor que `0x100`: as duas funções foram reescritas
+com o mesmo tamanho (15 instruções) para ler **uma letra por byte** (`lbu` em vez de
+`lhu`), o que dobra o espaço da mesma área:
+
+- estações: 4 × 10 bytes a partir de `0x80049088`, até 9 letras terminadas em `0xFF`
+  (sem os espaços de enchimento; "4 de Verão, Ano 1" sai sem buraco);
+- dias: 7 × 3 bytes logo depois.
+
+Os nomes ficam em `exetext.SEASON_NAMES` e `WEEKDAY_NAMES`. O montador e o interpretador
+mínimos de MIPS (`tools/hmbtn/mips.py`) geram o código e, nos testes, rodam as funções
+antiga e nova sobre o executável de verdade. A área antiga é conferida por SHA-1 antes
+de gravar (o repositório não guarda o texto original).
+
+## Calendário: "Ano 1"
+
+O cabeçalho do calendário (overlay 11, função em `0x428AC`) desenha o número do ano em
+`x=0x1F` e "Year" em `x=0x39` ("1st Year"; os ordinais ficaram vazios). O remendo
+`exetext.OVERLAY_PATCHES` troca as posições: "Ano" em `0x1F` e o número (2 casas,
+alinhado à direita) em `0x3B`, o que dá "Ano 1" e "Ano 10".
 
 ## Pendências
 
-Estes textos não cabem traduzidos e ficam em inglês até as referências deles serem
-mapeadas (as lojas usam alguma estrutura que a análise estática não encontrou; o caminho
-é um ponto de parada de leitura no emulador, com a loja aberta):
-
-`Wine`, `Brush`, `Milker`, `Milk`, `Snowcone`, `Salad` (cardápio da Pousada), `Buy cow`,
-`Buy sheep`, `Sell cow`, `Sell sheep`.
+- **Lojas:** os 10 itens que faltavam (`Wine`, `Brush`, `Milker`, `Milk`, `Snowcone`,
+  `Salad`, `Buy/Sell cow/sheep`) foram traduzidos com os grupos `por_contagem`, a
+  confirmar no jogo. Abreviação de cardápio: "Ordenh." (Ordenhadeira; a coluna do nome
+  na Ferraria tem 8 letras). Comprar e vender animais viraram "Vaca", "Ovelha", "Vender
+  vaca", "Vender ovelha".
+- **Relógio:** "AM"/"PM" continuam (não estão nos blocos de texto; provavelmente são
+  desenhos). Em português o uso é entendido.
 
 Também ficam em inglês, de propósito: termos técnicos (`ON`, `OFF`, `Stereo`, `Mono`,
-`Analog`, `Odds`), nomes próprios (Duendes, galinhas, competidores, animais) e a grade de
-letras da tela de nomes. Abreviações usadas por falta de espaço: "Açúc.", "Gelad.",
-"Ferram.", "Ingred.", "Utensíl.", "Medal.", "Sem." (sementes), "Máq." (máquinas).
+`Analog`, `Odds`) e nomes próprios (Duendes, galinhas, competidores, animais).
+Abreviações usadas por falta de espaço: "Açúc.", "Gelad.", "Ferram.", "Ingred.",
+"Utensíl.", "Medal.", "Sem." (sementes), "Máq." (máquinas), "Ordenh.".
 
 ## Regras conferidas pelo `check`
 

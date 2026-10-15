@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, exetext, font, rules  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -335,10 +335,51 @@ class ExeGroupsTest(unittest.TestCase):
     def test_animal_name_suffix_patch(self):
         exe = bytearray(self.exe)
         self.assertEqual(self.text_at(exe, 0x80049084), "'s\n")
-        exetext.apply_patches(exe)
+        exetext.apply_patches(exe, self.table)
         self.assertEqual(self.text_at(exe, 0x80049084), '\n')
         with self.assertRaises(ValueError):
-            exetext.apply_patches(exe)      # só grava sobre os bytes originais
+            exetext.apply_patches(exe, self.table)      # só grava sobre os bytes originais
+
+    def call(self, exe, function, index):
+        """Roda uma função de nome (estação/dia) do executável e devolve o texto escrito."""
+        memory = {0x80010000: bytearray(exe[0x800:]), 0x80100000: bytearray(64),
+                  0x80200000: bytearray(16)}
+        regs = mips.run(memory, function, {'a0': index, 'a1': 0x80100000, 'ra': 0x80200000})
+        size = regs['v0'] - 0x80100000
+        return self.table.decode(bytes(memory[0x80100000][:size]))
+
+    def test_season_and_weekday_names(self):
+        exe = bytearray(self.exe)
+        self.assertEqual(self.call(exe, exetext.SEASON_FN, 2), 'Fall  ')     # original: 6 fixas
+        exetext.apply_patches(exe, self.table)
+        self.assertEqual([self.call(exe, exetext.SEASON_FN, i) for i in range(4)],
+                         list(exetext.SEASON_NAMES))
+        self.assertEqual([self.call(exe, exetext.WEEKDAY_FN, i) for i in range(7)],
+                         list(exetext.WEEKDAY_NAMES))
+
+    def test_overlay_patches(self):
+        subfiles = [bytearray(d) for d in self.subfiles]
+        exetext.apply_overlay_patches(subfiles)
+        for sub, pos, _, new in exetext.OVERLAY_PATCHES:
+            self.assertEqual(struct.unpack_from('<I', subfiles[sub], pos)[0], new)
+        with self.assertRaises(ValueError):
+            exetext.apply_overlay_patches(subfiles)
+
+    def test_derived_references_keep_their_targets(self):
+        # "Sim\nNão" empurra "Jogo" 1 letra; as mensagens achadas a partir dele não andam
+        _, fixes, errors, _ = self.apply({'exe-80051D80': 'Sim\nNão', 'exe-80051D8E': 'Jogo {4001}'})
+        self.assertEqual(dict(errors), {})
+        fixed = {(target, pos): struct.unpack('<I', data)[0] for target, pos, data in fixes}
+        diary = 0x80050000 + (fixed[(15, 0x08F40)] & 0xFFFF)
+        for pos, target in ((0x08FCC, 0x80051C54), (0x09000, 0x80051C66), (0x09030, 0x80051C92)):
+            low = fixed[(15, pos)] & 0xFFFF
+            self.assertEqual(diary + (low - 0x10000 if low & 0x8000 else low), target)
+
+    def test_keyboard_grid_refs_in_the_exe(self):
+        _, fixes, errors, _ = self.apply({'exe-800537A2': 'Máximo'})
+        self.assertEqual(dict(errors), {})
+        targets = {pos for target, pos, _ in fixes if target == 'exe'}
+        self.assertEqual(targets, {exetext.file_offset(0x80023D60), exetext.file_offset(0x80023D6C)})
 
 
 class TranslationFilesTest(unittest.TestCase):
