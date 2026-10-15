@@ -293,6 +293,10 @@ Farmer Fran, Jimmy).
 | Ultror Slash / Super Ultror Blade | Corte Ultror / Super Lâmina Ultror |
 | Episode / To be continued… / Next time: / See you next time! | Episódio / Continua… / No próximo episódio: / Até a próxima! |
 | aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
+| wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
+| F-3.14 World Grand Prix / Round (da corrida) | Grande Prêmio Mundial de F-3.14 / etapa |
+| Sports Battle! / Results / Total points | Batalha dos Esportes! / Resultados / Pontuação total |
+| 1st: Flora (tabelas de classificação) | 1: Flora (a fonte não tem "º"; no meio da frase, "primeiro lugar") |
 | Grass / Grass seeds (pasto que vira Feno) | Capim / Sementes de capim |
 | Blue / Red / Green grass (ervas da montanha) | Erva azul / Erva vermelha / Erva verde |
 | Fishing pole (vara dos profissionais) | Vara de Pesca avançada |
