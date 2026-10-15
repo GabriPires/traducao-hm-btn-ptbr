@@ -400,6 +400,8 @@ Farmer Fran, Jimmy).
 | escort (no Festival da Deusa) | par ("Você vai ser o meu par!") |
 | Desert Flower (a flor que o marido da Lillia procura) | Flor do Deserto |
 | wine storeroom / cellar (do Duke) | adega |
+| hot spring (sempre o lugar da vila) | Fonte Termal (com maiúscula, também no meio da frase) |
+| town / the city (fora da vila) | cidade (a vila é a vila; "foi à cidade comprar perfume") |
 
 ### Comidas (como aparecem nos menus)
 
