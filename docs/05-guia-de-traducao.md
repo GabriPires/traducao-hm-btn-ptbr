@@ -402,6 +402,11 @@ Farmer Fran, Jimmy).
 | wine storeroom / cellar (do Duke) | adega |
 | hot spring (sempre o lugar da vila) | Fonte Termal (com maiúscula, também no meio da frase) |
 | town / the city (fora da vila) | cidade (a vila é a vila; "foi à cidade comprar perfume") |
+| fish print | gravura de peixe (como o item "Gravura de carpa") |
+| Fisher King (apelido que o Greg dá ao jogador) | Rei da Pesca |
+| warehouse (do Duke, onde o vinho envelhece) | adega |
+| Church / Square (o lugar da vila, também no meio da frase) | Igreja / Praça |
+| Ingredientes (butter, sugar, salt…) | minúscula; só utensílios e itens de loja com maiúscula (Faca, Panela) |
 
 ### Comidas (como aparecem nos menus)
 
