@@ -145,6 +145,24 @@ class RulesTest(unittest.TestCase):
         self.assertEqual(self.errors(good, en=en), [])
         self.assertTrue(any('espaço no início' in e for e in self.errors(bad, en=en)))
 
+    def warnings(self, pt, en, prefix):
+        return rules.validate(prefix, en, pt, self.allowed)[1]
+
+    def test_warns_when_long_text_shrinks_too_much(self):
+        en = 'The quick brown fox jumps over\nthe lazy dog. ' * 8
+        self.assertTrue(any('confira se nada foi cortado' in w
+                            for w in self.warnings('Uma raposa pulou o cão.', en, '{0FF1}')))
+        self.assertEqual(self.warnings('Uma raposa.', 'A fox jumps over the dog.', '{0FF3}'), [])
+
+    def test_warns_loose_line_breaks_on_tv(self):
+        en = 'Open the window and do not\nstand too near the old stove.'
+        loose = 'Abra a janela e\nnão\nfique perto do fogão.'
+        self.assertEqual(self.warnings(loose, en, '{0FF1}'),
+                         ["quebra de linha solta: 'Abra a janela e' + 'não' cabem numa linha só"])
+        # frase terminada ou fora da TV: sem aviso
+        self.assertEqual(self.warnings('Até a semana.\nTchau.', en, '{0FF1}'), [])
+        self.assertEqual(self.warnings(loose, en, '{0FF3}'), [])
+
 
 class FontTest(unittest.TestCase):
     def test_rle_roundtrip(self):

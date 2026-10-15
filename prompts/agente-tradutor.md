@@ -39,7 +39,8 @@ rígido.
 1. Traduza em partes de 50 a 100 falas e salve `translation/NN.json` ao fim de cada
    parte, acrescentando as novas falas sem mexer nas que já estão lá.
 2. Depois de cada parte, rode `python3 tools/hm.py check NN`. Corrija **todas** as
-   linhas marcadas com `ERRO` e rode de novo até terminar em `OK`. Leia os `aviso`s.
+   linhas marcadas com `ERRO` e rode de novo até terminar em `OK`. Leia os `aviso`s e
+   resolva os de "confira se nada foi cortado" e "quebra de linha solta".
 3. Use o campo `speakers` para acertar o gênero (`obrigado`/`obrigada`) e o tom de cada
    personagem.
 4. Termo que não está no glossário: traduza pelo sentido e use sempre a mesma tradução.

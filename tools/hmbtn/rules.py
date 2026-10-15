@@ -18,6 +18,9 @@ MAX_LINES_DIALOG = 4    # linhas por página nos diálogos com retrato
 MAX_UNITS = 1000        # o limite físico é 1023 valores; 1000 deixa margem para o prefixo
 NAME_WIDTH = 8          # espaço reservado na linha para cada nome variável
 APOSTROPHE = '008D'     # apóstrofo cru: pode sumir na tradução
+SHORT_RATIO = 0.7       # abaixo disso (em textos longos), a tradução provavelmente cortou conteúdo
+TV_PREFIX = '{0FF1}'    # programas de TV: texto corrido, longo
+SENTENCE_END = tuple('.!?…:;)"\'♥')
 
 CODE = re.compile(r'\{([^{}]*)\}')
 PAGE_BREAK = re.compile(r'(\{0FFC\}\{0FF[AB]\})')
@@ -132,7 +135,31 @@ def validate(prefix, en, pt, allowed):
         warnings.append('esta fala não aparece no jogo (Dummy ou vazia), não precisa de tradução')
     elif pt == en:
         warnings.append('tradução idêntica ao original')
+
+    if units(en) > 200 and units(pt) < SHORT_RATIO * units(en):
+        warnings.append(f'a tradução tem {units(pt)} unidades, {units(pt) * 100 // units(en)}% do original '
+                        f'({units(en)}): confira se nada foi cortado (o limite é {MAX_UNITS})')
+    if TV_PREFIX in prefix:
+        for before, after in loose_breaks(pt):
+            warnings.append(f'quebra de linha solta: {before!r} + {after!r} cabem numa linha só')
     return errors, warnings
+
+
+def loose_breaks(text):
+    """Pares de linhas em que a 2ª é um pedaço curto da mesma frase que caberia na 1ª."""
+    pairs = []
+    for page in PAGE_BREAK.split(text):
+        if PAGE_BREAK.fullmatch(page):
+            continue
+        lines = page.split('\n')
+        for a, b in zip(lines, lines[1:]):
+            plain_a, plain_b = CODE.sub('', a), CODE.sub('', b)
+            if (not plain_a.strip() or not plain_b.strip() or plain_a.startswith(' ')
+                    or plain_b.startswith(' ') or plain_a.rstrip().endswith(SENTENCE_END)):
+                continue
+            if width(b) <= 10 and width(a) + 1 + width(b) <= MAX_LINE:
+                pairs.append((plain_a.strip(), plain_b.strip()))
+    return pairs
 
 
 def _indented(line):

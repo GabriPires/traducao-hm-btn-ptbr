@@ -113,7 +113,7 @@ Proibidos: aspas curvas (`“ ” ‘ ’`), travessão (`—`, `–`), `ü`, `�
 - Não coube? Reescreva mais curto. Nunca crie páginas.
 - Linhas que começam com espaço (opções de menu, títulos centralizados) mantêm o espaço.
 - **Tamanho total:** até 1000 unidades por fala (cada caractere e cada código vale 1).
-  Só pesa nos programas de TV, que precisam ser condensados.
+  Só pesa nos programas de TV: veja "Programas de TV" abaixo (enxugar o mínimo, nunca resumir).
 
 ### Tipos de texto
 
@@ -131,6 +131,25 @@ Menus também aparecem no meio de um diálogo, depois de `{0FFC}{0FFA}`:
 en: Will you come with me?{0FFC}{0FFA}\n{0FF6} Yes\n No
 pt: Você vem comigo?{0FFC}{0FFA}\n{0FF6} Sim\n Não
 ```
+
+### Programas de TV (`{0FF1}`)
+
+Os programas (subarquivo 05) são textos longos e corridos, muitos perto do limite.
+
+- Traduza o programa **inteiro**: cartas de telespectadores, letras de música, títulos e
+  números de episódio, "No próximo episódio…", o aviso "Acenda a luz…", onomatopeias.
+  Resumir não é traduzir.
+- As **1000 unidades são um teto, não uma meta de corte.** Quando o original está perto
+  de 1000, a tradução também fica perto disso (algo entre 850 e 1000); quando o original
+  é menor, ela fica com tamanho parecido. O `check` avisa se a tradução tiver menos de
+  70% do original ("confira se nada foi cortado"): resolva esse aviso.
+- Passou de 1000? Enxugue o mínimo: frases mais diretas, interjeições e repetições.
+  Nunca tire informação (nomes, números, o que acontece, as piadas).
+- Preencha as linhas até perto de 31 caracteres. Ao corrigir uma linha longa,
+  **redistribua o parágrafo** em vez de empurrar uma palavra para a linha de baixo
+  (errado: "…ao ver TV e / não / fique perto da tela"). O `check` avisa ("quebra de
+  linha solta"): resolva esse aviso também.
+- Nomes dos programas: os do glossário, que são os do menu de canais.
 
 ## Textos do executável (`exe.json`)
 
