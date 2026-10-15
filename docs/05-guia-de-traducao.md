@@ -224,7 +224,8 @@ cada código e conferida pelas falas em que os personagens se apresentam.
   Interjeições: Wow → Uau, Ouch → Ai, Hmm → Hum, Ahem (pigarro) → Hum, hum (não use
   "Aham" para pigarro: em português ele significa "sim", e é a tradução certa de
   "Uh huh"), Waaa (choro) → Buááá, sob → snif, munch → nhac, Sigh → Ai, ai (não
-  "Ufa", que é alívio), Yes! (comemorando) → Isso! / Oba!, sirene de ambulância → Uó-uó.
+  "Ufa", que é alívio), Yes! (comemorando) → Isso! / Oba!, sirene de ambulância → Uó-uó,
+  Hee-hee → Hi-hi, Yoohoo (chamando à porta) → Ô de casa, Hick (soluço) → Hic.
 - Gestos: nod → **fazer que sim** com a cabeça; shake one's head → fazer que não
   ("balancei a cabeça" sozinho soa como "não"). Borrow → **pegar emprestado**
   (emprestar é dar emprestado).
@@ -389,6 +390,9 @@ Farmer Fran, Jimmy).
 | Opções: participar do festival / não participar | Participar do Festival / Não participar do Festival |
 | Opções (Contemplação da Lua): aceitar / recusar e dormir / ficar olhando / voltar para casa e dormir | Certo / Não, vou dormir / Ficar e olhar / Ir para casa dormir |
 | {4018} / {4019} (nome da galinha / da vaca nos festivais) | sem artigo; concorda no feminino ("a vencedora é {4019}") |
+| tea party (dos Duendes da Colheita) | chá da tarde |
+| Mister {jogador} (Won) | Senhor {jogador} |
+| the Master (o Cliff falando do Doug, dono da Pousada) | o dono da pousada |
 
 ### Comidas (como aparecem nos menus)
 
