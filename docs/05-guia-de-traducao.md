@@ -150,6 +150,9 @@ Os programas (subarquivo 05) são textos longos e corridos, muitos perto do limi
   (errado: "…ao ver TV e / não / fique perto da tela"). O `check` avisa ("quebra de
   linha solta"): resolva esse aviso também.
 - Nomes dos programas: os do glossário, que são os do menu de canais.
+- Opções de menu citadas no texto (entre `{001B}` e `{001E}`) e nomes de itens usam
+  **exatamente** o texto que o jogo mostra: confira no glossário ou na tradução já feita
+  em `translation/exe.json` e `translation/05.json` (descrições de itens e menus).
 - Títulos e cabeçalhos ("~ A Fada e Eu ~", "Capítulo 2", "Episódio 5") e falas curtas
   como `"……"` ou `"!!! ???"` ficam **em linhas próprias**, como no original. Não junte
   linhas para ganhar espaço: o limite é de linhas do original, e quase sempre sobra.
@@ -308,6 +311,7 @@ Farmer Fran, Jimmy).
 | Calligraphy / Pounding Mochi / Parlor Trick Party / Polar Bear Swim / Cooking DX! / Snowball Fight | Caligrafia / Pilando Mochi / Festa de Truques / Mergulho no Gelo / Culinária DX! / Guerra de Bolas de Neve |
 | Previsão do tempo: frase de abertura | Esta é a previsão do tempo para amanhã! |
 | Notícias: Day 5 of Spring / abertura da lista de eventos / 8th: | Dia 5 da Primavera / Eventos deste mês: / Dia 8: |
+| Life on the Farm: Farmer Fran / Jimmy | Vida na Fazenda: Farmer Fran (mulher: "obrigada") / Jimmy (menino) |
 | 'Chicken Sumo' (concurso do Festival das Galinhas) | 'Sumô de Galinha' |
 | aviso de saúde antes do desenho (luz e distância da tela) | "Acenda a luz ao ver TV e tome cuidado para não ficar muito perto da tela." |
 | wrestling tournament / round (do torneio) / match | torneio de luta livre / fase / luta |
@@ -342,6 +346,12 @@ Farmer Fran, Jimmy).
 | peddler (Won) | ambulante |
 | Power Berry | Fruta do Poder |
 | Miracle Potion | Poção Milagrosa |
+| Cow / Sheep Miracle Potion / Animal Medicine | Poção Milagrosa para vacas / para ovelhas / Remédio para animais |
+| Milk / Wool S, M, L, G (tamanhos) | Leite / Lã P, M, G, GG |
+| Feed Spout (Galinheiro, Estábulo) / stray dog | Saída de Ração / cão selvagem |
+| the Ranch (sem "Yodel") | o Rancho (como no mapa) |
+| Cozinha: opção da receita / opção do prato novo | Seguir uma receita / Criar um prato novo (textos do menu) |
+| Diário: opção de escrever e dormir / opção de dormir sem escrever | Escrever no diário e dormir / Dormir sem escrever no diário (textos do menu) |
 | Moon Drop / Moondrop (flor) | Gota da Lua |
 | Pink Cat / Magic Red / Toy Flower / Orangecup (flores) | Gato Rosa / Rubra Mágica / Flor-Brinquedo / Taça Laranja |
 | Hothouse / Lumber | Estufa / madeira (no menu: "tábuas") |
