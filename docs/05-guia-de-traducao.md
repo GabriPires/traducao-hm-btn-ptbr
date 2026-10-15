@@ -235,7 +235,8 @@ cada código e conferida pelas falas em que os personagens se apresentam.
   Estábulo está cheio…"). Não passe para a 1ª pessoa ("Não tenho…").
 - **Cartas, cartões e avisos:** a assinatura fica alinhada à direita, terminando na
   mesma coluna do original. Ajuste os espaços antes do nome quando ele mudar de tamanho.
-- Horários no padrão brasileiro: `6PM` → `18h`; `8:00` pode ficar. Moeda: `500G`.
+- Horários no padrão brasileiro: `6PM` → `18h`; `8:00` pode ficar, mas um horário da
+  noite escrito sem PM ("a festa começa às 6:00") vira `18h`. Moeda: `500G`.
   Datas: `the 22nd of Spring` → `dia 22 da Primavera`.
 - Adapte expressões em vez de traduzir palavra por palavra ("Lunch Special" →
   "prato do dia"; "Rick…brother…" dito pelo futuro cunhado → "Rick… cunhado…").
@@ -393,6 +394,10 @@ Farmer Fran, Jimmy).
 | tea party (dos Duendes da Colheita) | chá da tarde |
 | Mister {jogador} (Won) | Senhor {jogador} |
 | the Master (o Cliff falando do Doug, dono da Pousada) | o dono da pousada |
+| part-time job (opção com Jeff e Gray) | bico ("Falar do bico", "Perguntar do bico") |
+| Opções: Ask to accompany / Don't ask (Festival da Deusa) | Convidar / Não convidar |
+| the old man (Gray falando do Saibara) | o velho |
+| escort (no Festival da Deusa) | par ("Você vai ser o meu par!") |
 
 ### Comidas (como aparecem nos menus)
 
