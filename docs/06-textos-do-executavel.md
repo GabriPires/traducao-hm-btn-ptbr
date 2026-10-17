@@ -171,10 +171,10 @@ em `+0x1A`, ligados às variáveis `{4002}`, `{4003}` e `{4004}` da frase
   ordinais viraram espaços, sobrava "4   de". A chamada vai direto para a função do
   número, que recebe os mesmos argumentos.
 
-## Pendências
+## Notas e pendências
 
 - **Lojas:** os 10 itens que faltavam (`Wine`, `Brush`, `Milker`, `Milk`, `Snowcone`,
-  `Salad`, `Buy/Sell cow/sheep`) foram traduzidos com os grupos `somados`, a confirmar
+  `Salad`, `Buy/Sell cow/sheep`) foram traduzidos com os grupos `somados`, conferidos
   no jogo. Abreviação de cardápio: "Ordenh." (Ordenhadeira; a coluna do nome na
   Ferraria tem 8 letras). Comprar e vender animais viraram "Vaca", "Ovelha", "Vender
   vaca", "Vender ovelha".
