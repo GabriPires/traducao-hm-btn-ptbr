@@ -1,6 +1,8 @@
 """Testes das ferramentas. Rodar com: python3 -m unittest discover tests"""
 
+import io
 import json
+import random
 import re
 import struct
 import sys
@@ -10,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules, vcdiff  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -415,6 +417,64 @@ class ExeGroupsTest(unittest.TestCase):
         self.assertEqual(dict(errors), {})
         targets = {pos for target, pos, _ in fixes if target == 'exe'}
         self.assertEqual(targets, {exetext.file_offset(0x80023D60), exetext.file_offset(0x80023D6C)})
+
+
+class VcdiffTest(unittest.TestCase):
+    def roundtrip(self, old, new, window=vcdiff.WINDOW):
+        out = io.BytesIO()
+        vcdiff.encode(io.BytesIO(old), io.BytesIO(new), out, window)
+        result = io.BytesIO()
+        vcdiff.apply(io.BytesIO(old), out.getvalue(), result)
+        self.assertEqual(result.getvalue(), new)
+        return out.getvalue()
+
+    def test_varint_matches_the_rfc_example(self):
+        self.assertEqual(vcdiff.varint(123456789), bytes([0xBA, 0xEF, 0x9A, 0x15]))
+        self.assertEqual(vcdiff.varint(0), b'\x00')
+        self.assertEqual(vcdiff.Reader(bytes([0xBA, 0xEF, 0x9A, 0x15])).int(), 123456789)
+
+    def test_default_code_table(self):
+        table = vcdiff.CODE_TABLE
+        self.assertEqual(table[0][:3], (vcdiff.RUN, 0, 0))
+        self.assertEqual(table[vcdiff.ADD_EXPLICIT][:3], (vcdiff.ADD, 0, 0))
+        self.assertEqual(table[vcdiff.COPY_EXPLICIT][:3], (vcdiff.COPY, 0, 0))
+        self.assertEqual(table[163], (vcdiff.ADD, 1, 0, vcdiff.COPY, 4, 0))
+        self.assertEqual(table[175], (vcdiff.ADD, 1, 0, vcdiff.COPY, 4, 1))
+        self.assertEqual(table[255], (vcdiff.COPY, 4, 8, vcdiff.ADD, 1, 0))
+
+    def test_roundtrip_across_windows(self):
+        rng = random.Random(1)
+        old = bytes(rng.randrange(256) for _ in range(20000))
+        new = bytearray(old)
+        for pos in (0, 1, 2351, 2352, 4096, 4097, 9000, 19999):   # bordas de setor e janela
+            new[pos] ^= 0xFF
+        new[5000:5100] = bytes(100)
+        patch = self.roundtrip(old, bytes(new), window=4096)
+        self.assertLess(len(patch), 1000)                         # só o que mudou
+        self.roundtrip(old, old, window=4096)
+
+    def test_sizes_must_match(self):
+        with self.assertRaises(ValueError):
+            vcdiff.encode(io.BytesIO(b'abc'), io.BytesIO(b'abcd'), io.BytesIO())
+
+    def test_decoder_handles_the_whole_default_table(self):
+        # janela feita à mão com instruções que o codificador não usa: ADD 1 + COPY 4 num
+        # código só (163), RUN, COPY nos modos "here", "near" e "same" do cache de
+        # endereços, e uma cópia que se sobrepõe ao próprio resultado
+        old = b'ABCDEFGH'
+        data = b'xz'
+        instructions = bytes([163, 0]) + vcdiff.varint(3) + bytes([37, 53, 22, 116])
+        addresses = (vcdiff.varint(2) + vcdiff.varint(16 - 8) + vcdiff.varint(1)
+                     + vcdiff.varint(len(old) + 17) + bytes([2]))
+        expected = b'x' + b'CDEF' + b'zzz' + b'xCDEF' + b'DEFGH' + b'HHHHHH' + b'CDEF'
+        delta = (vcdiff.varint(len(expected)) + b'\x00' + vcdiff.varint(len(data))
+                 + vcdiff.varint(len(instructions)) + vcdiff.varint(len(addresses))
+                 + data + instructions + addresses)
+        patch = (vcdiff.MAGIC + b'\x00' + bytes([vcdiff.VCD_SOURCE]) + vcdiff.varint(len(old))
+                 + b'\x00' + vcdiff.varint(len(delta)) + delta)
+        out = io.BytesIO()
+        vcdiff.apply(io.BytesIO(old), patch, out)
+        self.assertEqual(out.getvalue(), expected)
 
 
 class TranslationFilesTest(unittest.TestCase):

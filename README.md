@@ -34,18 +34,26 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Textos fixos do executável: nomes de menus, comidas, itens de loja, memory card, dias da semana e estações (387 textos) | ✅ Traduzidos |
 | Textos dos minigames (16 textos) | ✅ Traduzidos |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
+| Patch `.xdelta` e pacote de lançamento | ✅ Concluído |
 | Testes do início ao fim e lançamento | ⏳ Pendente |
 
 ## Como jogar
 
-O patch ainda **não foi lançado**. Quando estiver pronto, o processo será:
+As versões ficam na página **Releases** do repositório, num `.zip` com o patch
+`.xdelta`, um `.cue` e um `LEIA-ME.txt`. As versões `0.x` são prévias para testes: os
+textos estão todos traduzidos, mas os gráficos com texto ainda estão em inglês.
 
 1. Tenha sua própria cópia do jogo, na versão compatível (abaixo).
 2. Confira o checksum da sua imagem.
 3. Aplique o patch `.xdelta` com uma ferramenta como o
-   [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/) (no navegador) ou o `xdelta3`.
-4. Abra a imagem traduzida no emulador de sua preferência. Os testes são feitos no
+   [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/) (no navegador), o Delta
+   Patcher (Windows) ou o `xdelta3`.
+4. Dê à imagem gerada o nome `HarvestMoon-BTN-PTBR.bin`, deixe-a ao lado do `.cue` e
+   abra o `.cue` no emulador. Os testes são feitos no
    [DuckStation](https://github.com/stenzek/duckstation).
+
+Os saves do memory card do jogo original continuam valendo na tradução. O `LEIA-ME.txt`
+traz os detalhes e os checksums da imagem traduzida.
 
 ### Versão compatível
 
@@ -79,6 +87,7 @@ python3 tools/hm.py dump      # exporta os diálogos originais para build/script
 python3 tools/hm.py check     # confere as traduções contra o original e as regras do jogo
 python3 tools/hm.py font      # prévia da fonte com os acentos em build/fonte.png
 python3 tools/hm.py build     # gera build/HARVESTMOON-PTBR.bin (+ .cue) com a tradução
+python3 tools/hm.py patch 0.1.0   # build + pacote de lançamento (.xdelta) em build/release/
 
 python3 -m unittest discover tests
 ```
@@ -109,7 +118,7 @@ no disco e recalcula os códigos de correção de erro dos setores alterados.
 ```
 tools/hm.py        linha de comando
 tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela de texto,
-                   diálogos, regras da tradução, fonte e acentos
+                   diálogos, regras da tradução, fonte e acentos, patch VCDIFF
 tables/hmbtn.tbl   tabela de caracteres do jogo
 tables/personagens.tsv  quem é cada retrato (personagem e gênero)
 translation/       a tradução: um JSON por subarquivo de diálogos, exe.json (executável)
@@ -131,6 +140,8 @@ tests/             testes automatizados
 5. [Guia de tradução](docs/05-guia-de-traducao.md): regras, estilo, quem fala e glossário
 6. [Textos do executável e dos minigames](docs/06-textos-do-executavel.md): menus,
    itens e minigames, como o jogo os acha e por que são traduzidos no mesmo tamanho
+7. [O patch e o pacote de lançamento](docs/07-patch.md): o formato VCDIFF (`.xdelta`),
+   como o patch é gerado e conferido
 
 ## Licença
 

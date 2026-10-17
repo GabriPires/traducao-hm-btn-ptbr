@@ -9,6 +9,7 @@ Uso:
     python3 tools/hm.py check [03 ...]       # confere as traduções contra as regras do jogo
     python3 tools/hm.py font                 # prévia da fonte com os acentos (build/fonte.png)
     python3 tools/hm.py build                # aplica fonte e translation/*.json numa cópia da imagem
+    python3 tools/hm.py patch 0.1.0          # build + pacote de lançamento (.xdelta) em build/release/
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
 
@@ -25,7 +26,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import accents, afile, dialog, exetext, font, rules
+from hmbtn import accents, afile, dialog, exetext, font, release, rules
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.speakers import Speakers
 from hmbtn.table import Table
@@ -38,6 +39,7 @@ SPEAKERS = ROOT / 'tables' / 'personagens.tsv'
 SCRIPT = BUILD / 'script'
 TRANSLATION = ROOT / 'translation'
 OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
+RELEASE = BUILD / 'release'
 FONT_PREVIEW = BUILD / 'fonte.png'
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
@@ -457,6 +459,24 @@ def cmd_build(args):
     print(f'Imagem: {OUTPUT.relative_to(ROOT)} (+ .cue)')
 
 
+def cmd_patch(args):
+    """Gera o pacote de lançamento: build com translation/, patch .xdelta, .cue e LEIA-ME."""
+    if not release.VERSION.fullmatch(args.version):
+        sys.exit(f'versão inválida: {args.version} (use algo como 0.1.0 ou 0.1.0-beta)')
+    print('Conferindo a imagem original...')
+    if release.checksums(args.iso) != release.ORIGINAL:
+        sys.exit('ERRO: a imagem não é a versão compatível (confira o SHA-1 no README)')
+    args.translation = TRANSLATION
+    cmd_build(args)
+    print('Gerando o patch...')
+    result = release.make(args.iso, OUTPUT, RELEASE, args.version)
+    size = f'{result["size"]:,}'.replace(',', '.')
+    print(f'OK: patch de {size} bytes, conferido (aplicado sobre o original, reproduz a '
+          f'imagem traduzida)')
+    print(f'Imagem traduzida: SHA-1 {result["patched"]["sha1"]}')
+    print(f'Pacote: {result["zip"].relative_to(ROOT)}')
+
+
 def cmd_peek(args):
     table = Table(TABLE)
     data = load_subfiles()[args.subfile]
@@ -483,13 +503,16 @@ def main():
     p = sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução e a fonte nova')
     p.add_argument('--translation', default=TRANSLATION,
                    help='pasta com as traduções (padrão: translation/)')
+    p = sub.add_parser('patch', help='gera o pacote de lançamento (.xdelta + .cue + LEIA-ME) em build/release/')
+    p.add_argument('version', help='versão do lançamento (ex.: 0.1.0)')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'peek': cmd_peek}[args.command](args)
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch,
+     'peek': cmd_peek}[args.command](args)
 
 
 if __name__ == '__main__':
