@@ -178,6 +178,16 @@ vez: dois vizinhos que crescem juntos disputam a mesma sobra. Exemplos:
   coluna da loja, é outra questão: **a largura da janela na tela é um limite à parte**,
   que só o teste no jogo mostra.
 
+**Largura das listas das lojas.** É uma constante no código de cada loja (overlay 11):
+a largura da coluna do nome vai para `+0x5A` e a largura total (nome + preço) para
+`+0x5B` da estrutura do menu, logo antes de montar a lista. Exemplos: sementes da
+primavera 14 (16 quando o morango entra), do verão 13, do outono 18; cardápio da Pousada
+10; Vinícola 11; barraca da praia 13. A tabela completa fica na skill `remanejar-texto`.
+O jogo não corta o nome: no piloto, "Sementes de nabo" (16 letras) vazou a caixa da
+primavera, e a semente voltou para "Sem. nabo". Nomes completos para todas as sementes
+também não caberiam na memória: somariam cerca de 120 letras a mais que a sobra da
+região.
+
 **Erro encontrado pelo mapa.** O teste que refaz a conta de todas as referências depois
 de gravar as traduções achou três instruções que os grupos feitos à mão não corrigiam.
 Na barraca da praia, os nomes seguintes à "Raspadinha" (milho assado, massa, pizza) são

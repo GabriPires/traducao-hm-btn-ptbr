@@ -71,13 +71,37 @@ Há **dois limites diferentes**:
 
 ## Larguras conhecidas
 
+**Listas das lojas.** A largura é uma constante no código de cada loja (overlay 11):
+o jogo grava a largura da coluna do nome em `+0x5A` e a largura total (nome + preço) em
+`+0x5B` da estrutura do menu. O nome não é cortado: se passar da coluna, ele invade o
+preço ou vaza da caixa. Valores lidos no código:
+
+| Lista | Coluna do nome (letras) | Exemplos |
+|---|---|---|
+| Sementes, primavera | 14 (16 quando o morango entra na lista) | Sem. capim, Sem. nabo |
+| Sementes, verão | 13 | Sem. tomate, Sem. milho |
+| Sementes, outono | 18 | Sem. berinjela, Sem. cenoura |
+| Sementes, outra lista (repolho, abacaxi, pimentão) | 18 | |
+| Pousada, cardápio do dia | 10 | Refeição, Cheesecake |
+| Pousada, bebidas | 15 | Suco de abacaxi |
+| Barraca da praia | 13 | Milho assado |
+| Vinícola | 11 | Suco de uva |
+| Rancho (vacas e ovelhas) | 15 | Remédio animal |
+| Galinheiro (aves) | 15 | Comprar ave |
+| Clínica (exame, remédio) | 13 | |
+| Loja de itens especiais | 12 | Fruta Poder, 500 tábuas |
+| Madeira | 17 | |
+| Ferraria, melhorias e outras listas | 5 a 16, conforme a lista | Escova (6), Ordenh. (8) |
+
+Confirmado no jogo: "Sementes de nabo" (16 letras) vazou a caixa da primavera (14).
+
+**Outras telas.**
+
 | Tela | Largura | Fonte |
 |---|---|---|
-| Ferraria, lista de ferramentas | 8 letras ("Ordenh.") | teste no jogo |
-| Rancho (comprar animais e itens) | pelo menos 14 letras + preço ("Remédio animal 1000G") | teste no jogo |
-| Vinícola e Pousada | 10 a 11 letras encostam no preço ("Suco de uva200G", "Cheesecake250G"; igual no original) | teste no jogo |
-| Cozinha (Utensílios, Ingrediente, temperos, Geladeira) | a confirmar: piloto de 2026-11 | piloto |
-| Loja de sementes | a confirmar: piloto "Sementes de nabo" (16 letras) | piloto |
+| Cozinha, rótulos "Utensílios" e "Ingrediente" | até 12 letras: o rótulo começa em x = 33 e os ícones em x = 132 (fonte de 8 pixels) | código (overlay 11); a confirmar no jogo |
+| Cozinha, "Mochila" e "Geladeira" | na linha deles não há outro desenho até a borda da janela (270 pixels) | código (overlay 11); a confirmar no jogo |
+| Menu do diário ao dormir | o texto atual coube | teste no jogo |
 
 ## Para o agente tradutor
 
