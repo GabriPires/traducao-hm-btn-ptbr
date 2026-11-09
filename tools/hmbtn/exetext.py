@@ -22,13 +22,15 @@ BLOCKS = ((0x8005175C, 0x80054BBA),   # menus, mensagens, comidas, lojas, sement
           (0x800556B6, 0x800558A2))   # nomes de animais e competidores
 # Textos soltos nos overlays (subarquivos do A_FILE carregados sob demanda pelos
 # minigames). Nomes próprios de competidores ficam de fora. Mesma regra: no lugar.
+# O primeiro texto de cada lista vem logo depois de código, sem um FFFF antes: é fácil
+# de perder numa busca por textos (o comando `scan` procura os que faltam).
 OVERLAY_STRINGS = {
-    11: (0x7035C,),                                    # sair da mina
+    11: (0x70328, 0x7035C),                            # buraco na mina, sair da mina
     17: (0x03662, 0x0367A, 0x03684, 0x03694),          # apostas da corrida de cavalos
-    21: (0x04CB8,),                                    # minigame de arremesso
-    23: (0x03A66, 0x03A8A, 0x03AAC, 0x03ACE, 0x03AF8,  # competidores "Fazenda X: nome"
-         0x03B28, 0x03B54, 0x03B76, 0x03BA2),
-    25: (0x04D6E,),
+    21: (0x04C58, 0x04CB8),                            # minigame de arremesso
+    23: (0x03A40, 0x03A66, 0x03A8A, 0x03AAC, 0x03ACE,  # competidores "Fazenda X: nome"
+         0x03AF8, 0x03B28, 0x03B54, 0x03B76, 0x03BA2),
+    25: (0x04D14, 0x04D6E),                            # incentivo e aviso de espera
 }
 END = 0xFFFF
 SPACE = 0x0FFD

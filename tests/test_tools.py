@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules, vcdiff  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules, scan, vcdiff  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -417,6 +417,32 @@ class ExeGroupsTest(unittest.TestCase):
         self.assertEqual(dict(errors), {})
         targets = {pos for target, pos, _ in fixes if target == 'exe'}
         self.assertEqual(targets, {exetext.file_offset(0x80023D60), exetext.file_offset(0x80023D6C)})
+
+
+class ScanTest(unittest.TestCase):
+    def setUp(self):
+        self.table = Table(TABLE)
+
+    def test_finds_text_right_after_code(self):
+        # o primeiro texto de uma lista vem depois de código, sem FFFF antes
+        code = struct.pack('<4I', 0x27BDFFE8, 0x3C028012, 0x24428148, 0x03E00008)
+        first = self.table.encode('?Oh, there is a box.') + b'\xff\xff'
+        second = self.table.encode('Open it?') + b'\xff\xff'
+        data = code + first + second
+        found = list(scan.candidates(data))
+        self.assertEqual([offset for offset, _ in found], [len(code) + 2, len(code) + len(first)])
+        self.assertEqual(self.table.decode(found[0][1]), 'Oh, there is a box.')
+
+    def test_ignores_binary_data(self):
+        data = bytes(400) + b'\xff\xff' + bytes(range(256)) * 4 + b'\xff\xff'
+        self.assertEqual(list(scan.candidates(data)), [])
+
+    def test_covered_places(self):
+        self.assertTrue(scan._covered(3, dialog.RECORD_SIZE * 5 + dialog.TEXT_OFFSET + 40))
+        self.assertFalse(scan._covered(3, dialog.RECORD_SIZE * 5 + 40))
+        self.assertTrue(scan._covered(11, 0x70328))
+        self.assertTrue(scan._covered(19, 0x04F48))
+        self.assertTrue(scan._covered('exe', exetext.file_offset(exetext.BLOCKS[0][0])))
 
 
 class VcdiffTest(unittest.TestCase):

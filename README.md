@@ -32,7 +32,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Fonte com acentos e cedilha | ✅ Concluído |
 | Caixas de mensagem: falas, placas, cartas, descrições de itens, ajuda, TV (6.011 textos) | ✅ Traduzidos (5.873; os outros 138 são vazios, "Dummy" ou iguais em português) |
 | Textos fixos do executável: nomes de menus, comidas, itens de loja, memory card, dias da semana e estações (387 textos) | ✅ Traduzidos |
-| Textos dos minigames (16 textos) | ✅ Traduzidos |
+| Textos dos minigames (20 textos) | ✅ Traduzidos |
 | Gráficos com texto (título, menus) | ⏳ Pendente |
 | Patch `.xdelta` e pacote de lançamento | ✅ Concluído |
 | Testes do início ao fim e lançamento | ⏳ Pendente |
@@ -92,7 +92,8 @@ python3 tools/hm.py patch 0.1.0   # build + pacote de lançamento (.xdelta) em b
 python3 -m unittest discover tests
 ```
 
-Também há `find` (procura uma fala) e `peek` (decodifica texto numa posição).
+Também há `find` (procura uma fala), `peek` (decodifica texto numa posição) e `scan`
+(procura textos do jogo que ainda não são extraídos).
 Use `python3 tools/hm.py --help` para ver todos os comandos.
 
 ### Como a tradução é organizada

@@ -203,17 +203,29 @@ Abreviações usadas por falta de espaço: "Açúc.", "Gelad.", "Ferram.", "Ingr
 ## Textos dos minigames (overlays)
 
 Alguns minigames carregam código próprio, em subarquivos do `A_FILE` (os overlays), com
-uns poucos textos soltos. São **16 textos** traduzíveis, listados em
+uns poucos textos soltos. São **20 textos** traduzíveis, listados em
 `exetext.OVERLAY_STRINGS` e tratados com a mesma regra (no lugar, sem crescer):
 
 | Subarquivo | Conteúdo |
 |---|---|
-| 11 | pergunta se quer subir a escada e sair da mina |
+| 11 | mina: pergunta se quer descer pelo buraco e se quer subir a escada e sair |
 | 17 | apostas da corrida de cavalos ("Odds", "Tickets", "You can win … medals") |
-| 21 | aviso do minigame de arremesso |
+| 21 | dois avisos do minigame de arremesso |
 | 23 | competidores da corrida no formato "Fazenda X's nome" |
-| 25 | aviso de que todos estão esperando |
+| 25 | incentivo durante a prova e aviso de que todos estão esperando |
 
 Ficam de fora os nomes próprios de competidores do subarquivo 19 e os nomes das moças
-no 11. Original em `build/script/overlays.json`, tradução em `translation/overlays.json`,
+no 11.
+
+**Textos perdidos e o comando `scan`.** O primeiro texto de cada lista vem logo depois
+de código, sem um `FFFF` antes, e por isso escapou da primeira busca: quatro textos
+(buraco da mina, arremesso, prova do subarquivo 25 e o primeiro competidor) só
+apareceram no jogo. O comando `python3 tools/hm.py scan` (`tools/hmbtn/scan.py`) passa
+por todos os subarquivos e pelo executável procurando sequências que parecem texto em
+inglês terminadas em `FFFF`, e descarta o que já é extraído: a área de texto das falas,
+os blocos do executável, `OVERLAY_STRINGS` e os achados conferidos em `scan.IGNORED`
+(nomes próprios e dados que parecem texto). Uma busca por texto ASCII também foi feita:
+só há mensagens de bibliotecas e de ferramentas de depuração, que não aparecem no jogo.
+O `scan` é uma heurística **(?)**: um texto curto só em maiúsculas, sem `FFFF` no fim
+ou numa codificação diferente escaparia dele. Original em `build/script/overlays.json`, tradução em `translation/overlays.json`,
 com ids `ovNN-DESLOCAMENTO` (ex.: `ov17-0367A`).

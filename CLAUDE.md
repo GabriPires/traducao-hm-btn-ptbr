@@ -20,6 +20,7 @@ Também é um projeto de aprendizado de romhacking.
 python3 tools/hm.py info | cue | extract | dump | check | font | build
 python3 tools/hm.py patch VERSÃO      # build + pacote de lançamento em build/release/
 python3 tools/hm.py find "texto em inglês"
+python3 tools/hm.py scan              # textos do jogo fora da extração (deve dar OK)
 python3 tools/hm.py peek <subarquivo> <offset>
 python3 -m unittest discover tests
 ```

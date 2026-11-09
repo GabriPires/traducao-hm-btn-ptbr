@@ -11,6 +11,7 @@ Uso:
     python3 tools/hm.py build                # aplica fonte e translation/*.json numa cópia da imagem
     python3 tools/hm.py patch 0.1.0          # build + pacote de lançamento (.xdelta) em build/release/
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
+    python3 tools/hm.py scan                 # procura textos que ainda não são extraídos
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
 
 A imagem original é só lida, nunca alterada.
@@ -26,7 +27,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import accents, afile, dialog, exetext, font, release, rules
+from hmbtn import accents, afile, dialog, exetext, font, release, rules, scan
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.speakers import Speakers
 from hmbtn.table import Table
@@ -477,6 +478,20 @@ def cmd_patch(args):
     print(f'Pacote: {result["zip"].relative_to(ROOT)}')
 
 
+def cmd_scan(args):
+    """Lista textos do jogo fora do que já é extraído (falas, executável, minigames)."""
+    table = Table(TABLE)
+    exe = (BUILD / 'disc' / 'SLUS_011.15').read_bytes()
+    found = scan.untracked(exe, load_subfiles())
+    for where, offset, raw in found:
+        text = table.decode(raw).replace('\n', '\\n')
+        print(f'{where!s:>4}  0x{offset:06X}  {len(raw) // 2:4d}  {text[:80]}')
+    if found:
+        sys.exit(f'{len(found)} texto(s) fora da extração: confira e inclua em '
+                 f'exetext.OVERLAY_STRINGS ou em scan.IGNORED')
+    print('OK: nenhum texto fora da extração')
+
+
 def cmd_peek(args):
     table = Table(TABLE)
     data = load_subfiles()[args.subfile]
@@ -505,13 +520,14 @@ def main():
                    help='pasta com as traduções (padrão: translation/)')
     p = sub.add_parser('patch', help='gera o pacote de lançamento (.xdelta + .cue + LEIA-ME) em build/release/')
     p.add_argument('version', help='versão do lançamento (ex.: 0.1.0)')
+    sub.add_parser('scan', help='procura textos do jogo que ainda não são extraídos')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch,
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch, 'scan': cmd_scan,
      'peek': cmd_peek}[args.command](args)
 
 
