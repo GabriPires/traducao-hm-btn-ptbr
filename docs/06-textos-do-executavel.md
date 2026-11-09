@@ -269,7 +269,12 @@ Também ficam em inglês, de propósito: termos técnicos (`ON`, `OFF`, `Stereo`
 Abreviações usadas por falta de espaço: "Gelad." (menu da geladeira; na cozinha já é
 "Geladeira"), "Ferram.", "Medal.", "Sem." (sementes), "Máq." (máquinas), "Ordenh.". Na
 cozinha, "Utensílios", "Ingrediente" e "Açúcar" passaram a aparecer por extenso com o
-remanejamento (testado no jogo).
+remanejamento (testado no jogo). Na revisão seguinte, "Sem. espinafre", "Poção ovelha" e
+"Unid." (madeira) também cresceram. Ficaram abreviados de propósito: as sementes ("Sem.
+X"; o nome completo não cabe nas colunas de 13 e 14 letras nem na memória), as máquinas
+da Ferraria ("Máq. de queijo" não cabe na memória), "Mimo p/ moça" (o menu da Ferraria
+tem 13 colunas) e as flores "Rubra Mág.", "Flor-Brinq." e "Taça Lar." (só sobram 1 ou
+2 letras).
 
 ## Regras conferidas pelo `check`
 

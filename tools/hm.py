@@ -493,9 +493,9 @@ def cmd_patch(args):
 
 
 def describe_ref(ref):
-    where = 'exe' if ref['where'] == 'exe' else f'ov{ref["where"]:02d}'
     if ref['kind'] == 'conflito':
         return 'leitura ambígua (o mesmo código parece montar dois textos): não anda'
+    where = 'exe' if ref['where'] == 'exe' else f'ov{ref["where"]:02d}'
     if ref['kind'] == 'leitura':
         return f'{where}:0x{ref["pos"]:X} lê bytes direto do texto: não anda'
     if ref['kind'] == 'tabela':

@@ -492,6 +492,20 @@ class ExeGroupsTest(unittest.TestCase):
         self.assertEqual(targets, {exetext.file_offset(0x80023D60), exetext.file_offset(0x80023D6C)})
 
 
+class DescribeRefTest(unittest.TestCase):
+    def test_every_kind_has_a_description(self):
+        sys.path.insert(0, str(ROOT / 'tools'))
+        import hm
+        for ref in ({'kind': 'conflito', 'where': None, 'pos': None},
+                    {'kind': 'leitura', 'where': 11, 'pos': 0x10},
+                    {'kind': 'tabela', 'where': 'exe', 'pos': 0x20},
+                    {'kind': 'addiu', 'where': 11, 'pos': 0x30, 'base': 0x80050000, 'delta': 0x2C3A,
+                     'base_delta': 0},
+                    {'kind': 'addiu', 'where': 15, 'pos': 0x40, 'base': 'exe-80054454', 'delta': 0,
+                     'base_delta': 0}):
+            self.assertTrue(hm.describe_ref(ref))
+
+
 class ScanTest(unittest.TestCase):
     def setUp(self):
         self.table = Table(TABLE)
