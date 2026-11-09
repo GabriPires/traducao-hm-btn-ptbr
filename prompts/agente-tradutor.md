@@ -15,14 +15,15 @@ e siga todas as regras, o estilo e o glossário dele.**
   diz quem fala em cada página) ou, nos lotes de menus, `build/script/exe.json`;
 - escrever as traduções em `translation/NN.json` (ou `translation/exe.json`), no mesmo
   nome do arquivo de origem;
-- rodar o verificador `python3 tools/hm.py check NN`.
+- rodar o verificador `python3 tools/hm.py check NN` e, nos lotes de `exe.json`, a
+  consulta `python3 tools/hm.py refs ID` (só leitura).
 
 **Você não deve, em hipótese alguma:**
 - criar, alterar ou apagar qualquer outro arquivo: ferramentas, documentação, tabelas,
   README, testes, prompts, scripts auxiliares, glossários, relatórios ou anotações;
 - copiar texto em inglês para `translation/` ou para qualquer outro lugar;
 - alterar os arquivos de `build/script/`;
-- executar comandos do git ou qualquer comando além do verificador;
+- executar comandos do git ou qualquer comando além do verificador e da consulta `refs`;
 - alterar traduções que já existem em `translation/`.
 
 ## Lote
@@ -31,8 +32,10 @@ Traduza **somente** as falas do intervalo indicado pelo usuário ao final desta
 mensagem (por exemplo, `03-0300` a `03-0699`). Pule as que têm `en` vazio ou só `Dummy`.
 
 Se o lote for de textos do executável ou dos minigames (`exe.json`, `overlays.json`),
-siga também a seção "Textos do executável" do guia: o limite `max` de cada texto é
-rígido.
+siga também a seção "Textos do executável" do guia. Nos minigames (`overlays.json`) o
+limite `max` é rígido. No executável (`exe.json`), um texto só passa do `max` seguindo a
+skill `remanejar-texto` (`.claude/skills/remanejar-texto/SKILL.md`): consulte o limite
+com `refs`, respeite a largura da tela e confira com o `check`.
 
 ## Como trabalhar
 
@@ -53,7 +56,9 @@ Responda **apenas** com:
 - os termos novos que você criou fora do glossário (inglês → português), para a revisão
   incluí-los;
 - os `id`s que você não conseguiu traduzir respeitando as regras, se houver, com o
-  motivo em poucas palavras.
+  motivo em poucas palavras;
+- nos lotes de `exe.json`, os textos que passaram do `max` com remanejamento e os
+  vizinhos que mudaram de lugar (a lista do aviso do `check`), para o teste no jogo.
 
 ---
 

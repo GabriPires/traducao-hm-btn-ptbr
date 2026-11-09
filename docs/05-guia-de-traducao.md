@@ -168,7 +168,8 @@ Menus, comidas, itens de loja, sementes e mensagens de memory card ficam no exec
 - **Não passe de `max`**, contando cada caractere, espaço, `\n` e código como 1. Mais
   curto pode: o jogo completa com espaços. Exceção: `python3 tools/hm.py refs ID` mostra
   se o texto pode crescer por remanejamento e até quanto; a largura da janela na tela
-  continua valendo e precisa ser conferida no jogo.
+  continua valendo e precisa ser conferida no jogo. O passo a passo está na skill
+  `remanejar-texto` (`.claude/skills/remanejar-texto/SKILL.md`).
 - Prefira um sinônimo que caiba ("Free" → "Vago"). Se for preciso abreviar, use ponto
   ("Sem. de nabo") e abrevie **sempre do mesmo jeito**.
 - Opções de menu e títulos alinhados (linhas que começam com espaço) mantêm o mesmo
