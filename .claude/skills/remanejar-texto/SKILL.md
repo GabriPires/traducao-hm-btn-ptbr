@@ -99,8 +99,9 @@ Confirmado no jogo: "Sementes de nabo" (16 letras) vazou a caixa da primavera (1
 
 | Tela | Largura | Fonte |
 |---|---|---|
-| Cozinha, rótulos "Utensílios" e "Ingrediente" | até 12 letras: o rótulo começa em x = 33 e os ícones em x = 132 (fonte de 8 pixels) | código (overlay 11); a confirmar no jogo |
-| Cozinha, "Mochila" e "Geladeira" | na linha deles não há outro desenho até a borda da janela (270 pixels) | código (overlay 11); a confirmar no jogo |
+| Cozinha, rótulos "Utensílios" e "Ingrediente" | 11 letras: "Ingrediente" encosta exatamente na grade de ícones (a conta pelo código dava 12) | teste no jogo |
+| Cozinha, escolha de ingredientes: "Mochila" e "Geladeira" | "Geladeira" (9) coube | teste no jogo |
+| Menu da geladeira (guardar itens): "Gelad." (`exe-80051BD2`) | o painel teria espaço para cerca de 9 letras, mas o texto não tem referência conhecida e não cresce | teste no jogo |
 | Menu do diário ao dormir | o texto atual coube | teste no jogo |
 
 ## Para o agente tradutor

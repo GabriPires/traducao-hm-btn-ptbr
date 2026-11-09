@@ -266,8 +266,10 @@ em `+0x1A`, ligados às variáveis `{4002}`, `{4003}` e `{4004}` da frase
 
 Também ficam em inglês, de propósito: termos técnicos (`ON`, `OFF`, `Stereo`, `Mono`,
 `Analog`, `Odds`) e nomes próprios (Duendes, galinhas, competidores, animais).
-Abreviações usadas por falta de espaço: "Açúc.", "Gelad.", "Ferram.", "Ingred.",
-"Utensíl.", "Medal.", "Sem." (sementes), "Máq." (máquinas), "Ordenh.".
+Abreviações usadas por falta de espaço: "Gelad." (menu da geladeira; na cozinha já é
+"Geladeira"), "Ferram.", "Medal.", "Sem." (sementes), "Máq." (máquinas), "Ordenh.". Na
+cozinha, "Utensílios", "Ingrediente" e "Açúcar" passaram a aparecer por extenso com o
+remanejamento (testado no jogo).
 
 ## Regras conferidas pelo `check`
 
