@@ -80,20 +80,22 @@ preço ou vaza da caixa. Valores lidos no código:
 |---|---|---|
 | Sementes, primavera | 14 (16 quando o morango entra na lista) | Sem. capim, Sem. nabo |
 | Sementes, verão | 13 | Sem. tomate, Sem. milho |
-| Sementes, outono | 18 | Sem. berinjela, Sem. cenoura |
+| Sementes, outono | 18 | Sem. berinjela, Sem. espinafre |
 | Sementes, outra lista (repolho, abacaxi, pimentão) | 18 | |
 | Pousada, cardápio do dia | 10 | Refeição, Cheesecake |
 | Pousada, bebidas | 15 | Suco de abacaxi |
 | Barraca da praia | 13 | Milho assado |
 | Vinícola | 11 | Suco de uva |
-| Rancho (vacas e ovelhas) | 15 | Remédio animal |
+| Rancho (vacas e ovelhas) | 15 | Remédio animal, Poção ovelha |
 | Galinheiro (aves) | 15 | Comprar ave |
 | Clínica (exame, remédio) | 13 | |
 | Loja de itens especiais | 12 | Fruta Poder, 500 tábuas |
-| Madeira | 17 | |
+| Madeira | 17 | Unid. |
 | Ferraria, melhorias e outras listas | 5 a 16, conforme a lista | Escova (6), Ordenh. (8) |
 
-Confirmado no jogo: "Sementes de nabo" (16 letras) vazou a caixa da primavera (14).
+Confirmado no jogo: "Sementes de nabo" (16 letras) vazou a caixa da primavera (14);
+"Sem. espinafre", "Poção ovelha", "Unid." (madeira) e os textos da clínica, que mudaram de
+lugar, apareceram certos (v0.1.4).
 
 **Outras telas.**
 
