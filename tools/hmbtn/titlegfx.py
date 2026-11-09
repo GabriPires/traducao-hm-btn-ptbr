@@ -11,10 +11,11 @@ são montadas no build a partir das letras das imagens originais:
    centro dos traços): as letras se encostam pela borda, mas o miolo de uma nunca toca
    o da vizinha;
 2. cada pixel pertence à letra cujo miolo está mais perto (em 2D: a barra de um T que
-   avança por cima da letra seguinte continua sendo do T);
+   avança por cima da letra seguinte continua sendo do T), e de cada letra fica só o
+   corpo: os cinzas ligados ao próprio miolo. O contorno preto e o halo verde (que no
+   original faz a transição para a grama) ficam de fora, junto com pedaços da vizinha;
 3. as letras são coladas com o mesmo espaçamento do original (ou 1 pixel mais juntas,
-   se a palavra não couber), e onde sobrar pixel transparente encostado em tinta, entra
-   o contorno preto;
+   se a palavra não couber), e o contorno preto é refeito em volta do corpo, sem halo;
 4. o resultado é centralizado na largura da imagem original, que não pode mudar (o
    código desenha um retângulo de tamanho fixo).
 
@@ -85,9 +86,12 @@ class Sheet:
     def is_core(self, index):
         return self.rank[index] >= self.core_rank
 
-    def is_ink(self, index):
-        """Borda ou miolo de um traço. O halo (cinzas por fora do contorno) não conta."""
-        return index != TRANSPARENT and self.rank[index] >= self.core_rank - 1
+    def is_body(self, index):
+        """Corpo da letra: os cinzas da paleta (sem o preto do contorno e sem o halo verde,
+        que no original faz a transição para a grama)."""
+        v = self.palette[index]
+        r, g, b = v & 31, (v >> 5) & 31, (v >> 10) & 31
+        return index not in (TRANSPARENT, OUTLINE) and max(r, g, b) - min(r, g, b) <= 1
 
     def core_index(self, block):
         """O tom do miolo mais claro usado na imagem (as imagens variam um pouco)."""
@@ -160,8 +164,24 @@ def labels(sheet, block):
 
 
 def _cut_glyph(sheet, block, position):
+    """Só o corpo da letra: os cinzas ligados ao próprio miolo. O contorno é refeito na
+    montagem; o halo verde e pedaços da vizinha ficam de fora."""
     img, segs, owner = labels(sheet, block)
-    mine = [(x, y) for (x, y), k in owner.items() if k == position and img[y][x] != TRANSPARENT]
+    seeds = [(x, y) for (x, y), k in owner.items() if k == position and sheet.is_core(img[y][x])]
+    top = min(y for _, y in seeds) - 1          # o corpo vai até a borda do traço; mais longe
+    bottom = max(y for _, y in seeds) + 1       # é a linha do contorno (com cinzas de suavização)
+    mine, frontier = set(seeds), list(seeds)
+    while frontier:
+        following = []
+        for x, y in frontier:
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    q = (x + dx, y + dy)
+                    if q not in mine and owner.get(q) == position and top <= q[1] <= bottom \
+                            and sheet.is_body(img[q[1]][q[0]]):
+                        mine.add(q)
+                        following.append(q)
+        frontier = following
     left = min(x for x, _ in mine)
     right = max(x for x, _ in mine)
     columns = [[TRANSPARENT] * HEIGHT for _ in range(left, right + 1)]
@@ -235,12 +255,10 @@ def compose(sheet, text, width, core_index, gap=GAP, word_gap=WORD_GAP):
                 if key not in canvas or sheet.rank[index] > sheet.rank[canvas[key]]:
                     canvas[key] = index
         cursor = start + (g.core_end - g.core_start)
-    for (x, y) in list(canvas):          # contorno onde a tinta encosta no transparente
-        if not sheet.is_ink(canvas[(x, y)]):
-            continue
-        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-            if (nx, ny) not in canvas and 0 <= ny < HEIGHT:
-                canvas[(nx, ny)] = OUTLINE
+    for x, y in [p for p, i in canvas.items() if sheet.is_body(i)]:   # contorno preto em volta
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if (x + dx, y + dy) not in canvas and 0 <= y + dy < HEIGHT:
+                canvas[(x + dx, y + dy)] = OUTLINE
     xs = [x for x, _ in canvas]
     left, right = min(xs), max(xs)
     used = right - left + 1

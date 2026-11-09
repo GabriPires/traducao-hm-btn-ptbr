@@ -54,12 +54,15 @@ montadas no `build` a partir das letras das próprias imagens do jogo:
 2. **Dono de cada ponto.** Uma busca em largura parte de todos os pixels de miolo ao mesmo
    tempo, e cada ponto fica com a letra que chega primeiro. Assim a barra de um T que
    avança por cima da letra seguinte continua sendo do T.
-3. **Palavra.** As letras são coladas com o espaçamento original (2 pontos entre miolos,
-   8 entre palavras) ou, se a palavra não couber, 1 ponto mais juntas. O miolo usa o tom
-   da imagem original (as três imagens variam um pouco no branco).
-4. **Contorno.** Onde a borda ou o miolo de uma letra encosta no transparente, entra o
-   contorno preto. O halo (cinzas por fora do contorno) não ganha contorno, senão
-   apareciam pontinhos acima das letras.
+3. **Só o corpo.** De cada letra ficam só os cinzas ligados ao próprio miolo, até uma
+   linha acima e abaixo dele (a borda do traço). O contorno preto e o halo verde, que no
+   original faz a transição para a grama, são descartados. Na primeira versão eles vinham
+   junto e, fora do lugar, viraram pontinhos verdes e restos das letras vizinhas na tela.
+4. **Palavra e contorno.** As letras são coladas com o espaçamento original (2 pontos entre
+   miolos, 8 entre palavras) ou, se a palavra não couber, 1 ponto mais juntas. O miolo usa
+   o tom da imagem original (as três variam um pouco no branco). O contorno preto é
+   refeito em volta do corpo, sem halo: comparado na tela real, o halo uniforme deixava
+   um aro grosso e o contorno simples ficou mais próximo do original.
 5. **Letras que não existem.** O J é o U sem a parte de cima da perna esquerda; o V é o U
    com as pernas se aproximando embaixo.
 

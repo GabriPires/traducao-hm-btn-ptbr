@@ -561,6 +561,15 @@ class TitleGraphicsTest(unittest.TestCase):
             titlegfx.glyph(self.sheet, 'Q')
         self.assertEqual(titlegfx.check(self.subfile, self.texts), {})
 
+    def test_words_have_only_letters_and_outline(self):
+        # nada do halo verde nem pedaços de letras vizinhas: só cinzas, contorno e transparente
+        for block, (text_id, _) in titlegfx.TARGETS.items():
+            rows, _ = titlegfx.compose_fit(self.sheet, self.texts[text_id], self.sheet.width(block),
+                                           self.sheet.core_index(block))
+            used = {i for row in rows for i in row}
+            self.assertTrue(all(self.sheet.is_body(i) or i in (titlegfx.OUTLINE, titlegfx.TRANSPARENT)
+                                for i in used), text_id)
+
     def test_build_changes_only_the_text_blocks(self):
         subfile = bytearray(self.subfile)
         titlegfx.build(subfile, self.texts)
