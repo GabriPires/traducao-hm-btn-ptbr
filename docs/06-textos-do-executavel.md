@@ -37,7 +37,9 @@ Diferente dos diálogos, aqui não há posição fixa por registro, e não exist
   consecutivos em intervalos constantes: várias no executável com passo de 32 bytes
   (comidas, itens) e outras nos overlays 11, 18 e 27.
 
-Somando tudo, **189 dos 354 textos do bloco principal** têm referência identificada.
+Somando tudo, **189 dos 354 textos do bloco principal** têm referência identificada
+nessa primeira análise. O mapa automático (seção "Mapa de referências e remanejamento")
+chega a 286 dos 393.
 Os demais formam grupos (itens das lojas, sementes, avisos de memory card, opções de
 configuração) que devem usar estruturas de outro formato, ainda não mapeadas. **(?)**
 
@@ -54,8 +56,10 @@ posição, o que funciona qualquer que seja o caminho que o jogo usa:
   completa com espaços antes do `FFFF` (assim até um código que contasse terminadores
   chegaria ao texto certo).
 
-A consequência é a regra principal: **a tradução de um texto do executável não pode
-ser mais longa que o original** (`max`, em caracteres; `\n` conta como 1).
+A consequência é a regra principal: **a tradução de um texto do executável não deve
+ser mais longa que o original** (`max`, em caracteres; `\n` conta como 1). A exceção é
+o remanejamento automático (seção própria, mais abaixo): `python3 tools/hm.py refs ID`
+diz até quanto um texto pode crescer.
 
 Exemplos do menu de pausa:
 
@@ -112,6 +116,75 @@ Cada grupo de loja lista essas instruções em `somados` (base: o `lui` ou o id 
 que já está no registrador). O `build` recalcula cada uma, inclusive quando a base também
 anda. A varredura foi feita em todos os subarquivos e no executável, e só o overlay 11
 acha esses textos. O teste refaz a conta de cada instrução sobre o resultado.
+
+## Mapa de referências e remanejamento automático
+
+O remanejamento pelos grupos feitos à mão (acima) depende de saber, texto por texto,
+onde o jogo guarda o endereço. O mapa automático (`tools/hmbtn/refs.py`, comando
+`python3 tools/hm.py refs`) faz essa busca para todos os textos do executável, no próprio
+executável e nos 13 subarquivos com código. Ele grava `build/refs.json` (fora do git), e
+o `check` e o `build` o reaproveitam.
+
+| Tipo | Como o jogo acha o texto |
+|---|---|
+| `addiu` | `lui 0x8005` + `addiu` monta o endereço (ou endereço - `0x2C3A`, quando o código soma depois a palavra de `0x80054BC0`), às vezes a partir do endereço de OUTRO texto que já está no registrador |
+| `tabela` | deslocamento de 16 bits a partir de `0x8005175C`: a tabela de receitas e três tabelas achadas pelo mapa (lista do diário e avaliações do fim do ano no overlay 11, perguntas do cadastro no overlay 27) |
+| `leitura` | o código lê bytes direto do texto: ele nunca anda |
+| `conflito` | o mesmo valor serve para dois textos (um lido direto e outro com `+ 0x2C3A`) e não dá para saber qual: os dois ficam presos |
+
+Resultado: **286 dos 393 textos** têm referência conhecida e 280 podem mudar de lugar.
+Os outros (mensagens do PocketStation e do memory card, ordinais, nomes dos Duendes e
+dos animais da competição, alguns rótulos) o jogo acha por caminhos ainda não mapeados,
+e eles ficam no lugar.
+
+Cuidados que a construção do mapa ensinou:
+
+- **Tabelas falsas.** Pedaços de instruções às vezes coincidem com deslocamentos de
+  texto. Só vale como tabela uma sequência de pelo menos 4 entradas, com passo de até 8
+  bytes e valores crescentes. As sequências descartadas tinham 3 entradas, passo 12 ou 16
+  e valores fora de ordem, sempre no meio de código; corrigi-las estragaria o código.
+- **Valor ambíguo.** Quando o valor montado é o começo de um texto lido direto e também
+  de outro lido com `+ 0x2C3A`, vale a soma usada para chegar à base; sem base, os dois
+  ficam presos.
+- **A varredura é uma heurística (?).** Ela acompanha os registradores em linha reta a
+  partir de cada `lui`, sem seguir desvios. Uma referência montada longe dali, ou numa
+  estrutura de outro formato, escapa. Por isso todo texto que anda precisa ser conferido
+  no jogo.
+
+**Remanejamento automático** (`exetext._Layout`). Quando uma tradução passa do espaço
+original, o `check` e o `build` procuram uma janela de até 12 vizinhos de cada lado:
+
+- o primeiro texto da janela não anda, e cada texto que anda precisa ter todas as
+  referências conhecidas;
+- a ordem e o número de terminadores não mudam, e cada texto continua terminando logo
+  antes do seguinte (o que sobra vira espaço antes do `FFFF`);
+- há duas arrumações: empurrar os seguintes para a frente ou puxar os textos para trás,
+  usando a sobra dos vizinhos que ficaram mais curtos; vale a que move menos textos;
+- textos dos grupos feitos à mão e de tamanho exato (`EXACT_LENGTH`) ficam de fora.
+
+Depois, **todas** as referências do mapa ligadas a um texto que andou são recalculadas
+(nos grupos feitos à mão também), inclusive as que só passam pelo endereço dele. O
+`check` avisa cada texto que cresceu e quais vizinhos mudaram de lugar, para conferir no
+jogo. Quando não há janela possível, ele diz por quê (falta de sobra ou vizinho sem
+referência conhecida).
+
+`python3 tools/hm.py refs ID` mostra as referências de um texto e até quantos caracteres
+ele pode ter com as outras traduções como estão. O cálculo vale para um texto de cada
+vez: dois vizinhos que crescem juntos disputam a mesma sobra. Exemplos:
+
+- "Grana" (`exe-80054400`) não passa de 5: os vizinhos são os nomes dos Duendes e
+  "Medal.", sem referência conhecida;
+- "Sem. repolho" (`exe-800544EC`) pode ir até 28 caracteres na memória. Se cabe na
+  coluna da loja, é outra questão: **a largura da janela na tela é um limite à parte**,
+  que só o teste no jogo mostra.
+
+**Erro encontrado pelo mapa.** O teste que refaz a conta de todas as referências depois
+de gravar as traduções achou três instruções que os grupos feitos à mão não corrigiam.
+Na barraca da praia, os nomes seguintes à "Raspadinha" (milho assado, massa, pizza) são
+achados a partir do endereço dela. O grupo das lojas moveu a "Raspadinha" e não ajustou
+essas três instruções, então na v0.1.1 esses nomes devem aparecer com o começo errado
+**(?)** (deduzido do código; a barraca só abre no verão). Com a correção pelo mapa, elas
+passam a compensar a mudança.
 
 ## Textos que entram no meio das falas
 

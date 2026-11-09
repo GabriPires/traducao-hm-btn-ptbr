@@ -342,8 +342,7 @@ def validate(en, pt, allowed, max_units):
         errors.append(f'{len(lines_pt)} linhas, o original tem {len(lines_en)}')
     units = len(CODE.sub('#', pt))
     if units > max_units:
-        errors.append(f'longo demais: {units} caracteres, o espaço do original é {max_units} '
-                      f'(textos do executável não podem crescer)')
+        errors.append(f'longo demais: {units} caracteres, o espaço do original é {max_units}')
     return errors
 
 
@@ -369,8 +368,11 @@ def recipe_refs(exe):
     return refs
 
 
-def plan(exe, subfiles, table, translations, allowed):
+def plan(exe, subfiles, table, translations, allowed, refmap=None):
     """Decide como gravar as traduções do executável.
+
+    Com `refmap` (o mapa de `refs.find`), um texto que não cabe no seu espaço pode
+    crescer por remanejamento automático (classe _Layout). Sem ele, só os GROUPS.
 
     Devolve (gravações, correções, erros, avisos): gravações = [(posição no EXE, bytes)],
     correções = [(alvo, posição, bytes)] com alvo 'exe' ou o número do subarquivo,
@@ -382,6 +384,7 @@ def plan(exe, subfiles, table, translations, allowed):
     errors, warnings = defaultdict(list), defaultdict(list)
     grouped = set()
     recipes = recipe_refs(exe)
+    hand_new_of = {}                                  # textos que os GROUPS mudaram de lugar
 
     for group in GROUPS:
         ids = list(group['ids'])
@@ -420,6 +423,8 @@ def plan(exe, subfiles, table, translations, allowed):
             _, old_address, _ = segs[index[sid]]
             new_address = start + len(data)
             new_of[sid] = new_address
+            if new_address != old_address:
+                hand_new_of[sid] = new_address
             chunk = encoded[sid]
             if number == len(ids) - 1:
                 chunk += struct.pack('<H', SPACE) * ((end - new_address - len(chunk)) // 2)
@@ -464,11 +469,43 @@ def plan(exe, subfiles, table, translations, allowed):
                                      'alguma referência desconhecida, ela mostrará um pedaço do vizinho')
         writes.append((file_offset(start), bytes(data)))
 
+    not_moved = set()                                 # não couberam nem com remanejamento
+    if refmap is not None:
+        layout = _Layout(exe, segs, table, translations, allowed, refmap, grouped)
+        for i in layout.overflowing():
+            if i in layout.taken:
+                continue
+            window = layout.find_window(i)
+            if window is None:
+                errors[segs[i][0]].append(layout.why_not(i))
+                not_moved.add(segs[i][0])
+                continue
+            layout.take(window)
+        auto_writes, notes = layout.write_windows()
+        writes += auto_writes
+        for sid, messages in notes.items():
+            warnings[sid] += messages
+        grouped |= {segs[i][0] for i in layout.taken}
+        # todas as referências conhecidas de textos que andaram (nos GROUPS ou nas janelas),
+        # inclusive as que só passam pelo endereço de um texto que andou
+        known = {fix[:2]: fix for fix in fixes}
+        new_fixes, problems = layout.ref_fixes({**hand_new_of, **layout.new_of}, subfiles)
+        for sid, messages in problems.items():
+            errors[sid] += messages
+        for sid, fix in new_fixes:
+            key = fix[:2]
+            if key in known and known[key] != fix:
+                errors[sid].append(f'{key[0]}:{key[1]:#x} seria corrigido de dois jeitos')
+            elif key not in known:
+                known[key] = fix
+                fixes.append(fix)
+
     for sid, address, raw in segs:
         if sid in grouped or sid not in translations:
             continue
         en = table.decode_exact(raw)
-        problems = validate(en, translations[sid], allowed, len(raw) // 2)
+        limit = 10 ** 6 if sid in not_moved else len(raw) // 2     # o motivo já foi dado
+        problems = validate(en, translations[sid], allowed, limit)
         units = len(CODE.sub('#', translations[sid]))
         if sid in EXACT_LENGTH and units != len(raw) // 2:
             problems.append(f'precisa ter exatamente {len(raw) // 2} caracteres (aparece no meio '
@@ -483,6 +520,224 @@ def plan(exe, subfiles, table, translations, allowed):
         if sid not in index:
             errors[sid].append('esse texto não existe no executável')
     return writes, fixes, errors, warnings
+
+
+WINDOW_REACH = 12           # vizinhos procurados de cada lado no remanejamento
+
+
+def movable(refs):
+    """Um texto com estas referências (mapa de `refs.find`) pode mudar de lugar?"""
+    return bool(refs) and all(ref['kind'] in ('addiu', 'tabela') for ref in refs)
+
+
+def hand_grouped(segs):
+    """Ids dos textos nos GROUPS feitos à mão (o remanejamento automático não mexe neles)."""
+    ids = set()
+    for group in GROUPS:
+        ids.update(group['ids'])
+        if group['ids'][-1] == 'comidas':
+            ids.update(sid for sid, address, _ in segs if FOODS[0] <= address < FOODS[1])
+    ids.discard('comidas')
+    return ids
+
+
+class _Layout:
+    """Remanejamento automático dos textos do executável.
+
+    Um texto que não cabe no seu espaço cresce dentro de uma JANELA de vizinhos: o
+    primeiro texto da janela não anda, e cada texto que anda precisa ter todas as
+    referências conhecidas (mapa de `refs.find`), que são corrigidas. A ordem e o número
+    de terminadores não mudam, e cada texto continua terminando logo antes do seguinte
+    (o que sobra vira espaço antes do FFFF), então quem conta textos continua certo.
+    Dentro da janela há duas arrumações: empurrar os textos para a frente ou puxá-los
+    para trás, usando a sobra dos vizinhos; vale a que move menos textos.
+    """
+
+    def __init__(self, exe, segs, table, translations, allowed, refmap, excluded):
+        self.exe, self.segs, self.refmap = exe, segs, refmap
+        self.index = {sid: i for i, (sid, _, _) in enumerate(segs)}
+        self.encoded, self.need, self.slot, self.block = [], [], [], []
+        block = 0
+        for i, (sid, address, raw) in enumerate(segs):
+            if i and address != segs[i - 1][1] + len(segs[i - 1][2]) + 2:
+                block += 1
+            self.block.append(block)
+            encoded, pt = raw, translations.get(sid)
+            invalid = bool(pt and validate(table.decode_exact(raw), pt, allowed, 10 ** 6))
+            if pt and not invalid:
+                encoded = table.encode(pt)
+            self.encoded.append(encoded)
+            self.need.append(len(encoded) + 2)          # bytes, com o FFFF
+            self.slot.append(len(raw) + 2)
+            if invalid:                                 # o erro sai na gravação no lugar
+                excluded = excluded | {sid}
+        self.fixed = {i for i, (sid, _, _) in enumerate(segs) if sid in excluded or sid in EXACT_LENGTH}
+        self.movable = [movable(refmap.get(sid, [])) for sid, _, _ in segs]
+        self.taken = set()
+        self.windows = []                               # (s, e, posições, quem motivou)
+
+    def overflowing(self):
+        return [i for i in range(len(self.segs))
+                if self.need[i] > self.slot[i] and i not in self.fixed]
+
+    def _free(self, j, i):
+        return 0 <= j < len(self.segs) and j not in self.fixed and j not in self.taken \
+            and self.block[j] == self.block[i]
+
+    def _pack(self, s, e, need):
+        """Posições dos textos s..e, ou None. Devolve a arrumação que move menos textos."""
+        addr = [self.segs[j][1] for j in range(s, e + 1)]
+        end = addr[-1] + self.slot[e]
+        options = []
+        positions, cur = [], addr[0]                    # empurrando para a frente
+        for k, j in enumerate(range(s, e + 1)):
+            positions.append(max(addr[k], cur))
+            cur = positions[-1] + need[j]
+        if cur <= end:
+            options.append(positions)
+        positions, cur = [], end                        # puxando para trás
+        for k, j in reversed(list(enumerate(range(s, e + 1)))):
+            cur = min(addr[k], cur - need[j])
+            positions.insert(0, cur)
+        if positions[0] == addr[0]:
+            options.append(positions)
+        best = None
+        for positions in options:
+            moved = [s + k for k, p in enumerate(positions) if p != addr[k]]
+            if all(self.movable[j] for j in moved) and (best is None or len(moved) < best[0]):
+                best = (len(moved), positions)
+        return best
+
+    def find_window(self, i, need=None):
+        """(s, e, posições) da melhor janela para o texto i, ou None."""
+        need = need or self.need
+        best = None
+        s = i
+        while self._free(s, i) and i - s <= WINDOW_REACH:
+            e = i
+            while self._free(e, i) and e - i <= WINDOW_REACH:
+                packed = self._pack(s, e, need)
+                if packed and (best is None or (packed[0], e - s) < best[0]):
+                    best = ((packed[0], e - s), (s, e, packed[1]))
+                e += 1
+            s -= 1
+        return best[1] if best else None
+
+    def why_not(self, i):
+        excess = (self.need[i] - self.slot[i]) // 2
+        sid = self.segs[i][0]
+        if not self.movable[i] and not self.refmap.get(sid):
+            reason = 'ele e os vizinhos não têm como abrir espaço'
+        else:
+            reason = 'não há sobra nos vizinhos que podem mudar de lugar'
+        blockers = [self.segs[j][0] for j in range(max(0, i - 2), min(len(self.segs), i + 3))
+                    if j != i and self._free(j, i) and not self.movable[j]]
+        if blockers:
+            reason += f' (sem referência conhecida: {", ".join(blockers)})'
+        return f'passou {excess} caractere(s) e o remanejamento não resolveu: {reason}'
+
+    def take(self, window):
+        s, e, positions = window
+        self.taken.update(range(s, e + 1))
+        self.windows.append(window)
+
+    def write_windows(self):
+        """(gravações, avisos) das janelas escolhidas; guarda em self.new_of quem andou."""
+        writes, notes = [], defaultdict(list)
+        new_of = self.new_of = {}
+        for s, e, positions in self.windows:
+            data = bytearray()
+            end = self.segs[e][1] + self.slot[e]
+            moved = []
+            for k, j in enumerate(range(s, e + 1)):
+                sid, address, _ = self.segs[j]
+                region = (positions[k + 1] if k + 1 < len(positions) else end) - positions[k]
+                chunk = self.encoded[j]
+                data += chunk + struct.pack('<H', SPACE) * ((region - 2 - len(chunk)) // 2)
+                data += struct.pack('<H', END)
+                if positions[k] != address:
+                    new_of[sid] = positions[k]
+                    moved.append(sid)
+            writes.append((file_offset(positions[0]), bytes(data)))
+            for j in range(s, e + 1):
+                if self.need[j] > self.slot[j]:
+                    notes[self.segs[j][0]].append(
+                        f'cresceu com remanejamento: {len(moved)} texto(s) mudaram de lugar '
+                        f'({", ".join(moved)}); confira no jogo')
+        return writes, notes
+
+    def ref_fixes(self, new_of, subfiles):
+        """Correções de todas as referências do mapa cujo texto ou cuja base andou.
+        Devolve ([(id, correção)], {id: [problemas]})."""
+        fixes, problems = [], defaultdict(list)
+        for sid, refs in self.refmap.items():
+            for ref in refs:
+                base = ref.get('base')
+                if ref['kind'] not in ('addiu', 'tabela') or sid not in self.index:
+                    continue
+                if sid not in new_of and not (isinstance(base, str) and base in new_of):
+                    continue
+                fix = self._fix(sid, ref, new_of, subfiles)
+                if isinstance(fix, str):
+                    problems[sid].append(fix)
+                elif fix:
+                    fixes.append((sid, fix))
+        return fixes, problems
+
+    def _address(self, sid, new_of=None):
+        old = self.segs[self.index[sid]][1]
+        return new_of.get(sid, old) if new_of is not None else old
+
+    def _fix(self, sid, ref, new_of, subfiles):
+        where, pos = ref['where'], ref['pos']
+        data = self.exe if where == 'exe' else subfiles[where]
+        old, new = self._address(sid), self._address(sid, new_of)
+        if ref['kind'] == 'tabela':
+            value = struct.unpack_from('<H', data, pos)[0]
+            if TXT_BASE + value != old:
+                return f'{where}:{pos:#x}: a tabela não aponta para este texto'
+            if not 0 <= new - TXT_BASE < 0x10000:
+                return f'{where}:{pos:#x}: deslocamento fora do alcance da tabela'
+            return None if new == old else (where, pos, struct.pack('<H', new - TXT_BASE))
+        word = struct.unpack_from('<I', data, pos)[0]
+        if word >> 26 != 0x09:
+            return f'{where}:{pos:#x} não é uma instrução addiu'
+        base = ref['base']
+        if isinstance(base, str):
+            old_base = self._address(base) - ref['base_delta']
+            new_base = self._address(base, new_of) - ref['base_delta']
+        else:
+            old_base = new_base = base
+        if (old_base + _s16(word & 0xFFFF)) & 0xFFFFFFFF != old - ref['delta']:
+            return f'{where}:{pos:#x} não calcula o endereço deste texto'
+        low = new - ref['delta'] - new_base
+        if not -0x8000 <= low < 0x8000:
+            return f'{where}:{pos:#x}: deslocamento fora do alcance'
+        if low == _s16(word & 0xFFFF):
+            return None
+        return (where, pos, struct.pack('<I', (word & 0xFFFF0000) | (low & 0xFFFF)))
+
+
+def budget(exe, table, translations, allowed, refmap, sid, limit=200):
+    """(espaço no lugar, máximo com remanejamento) em caracteres para o texto `sid`, com
+    as outras traduções como estão. Aproximado: não considera outros textos que também
+    precisem crescer na mesma região."""
+    segs = [(entry_id(address), address, raw) for address, raw in segments(exe)]
+    layout = _Layout(exe, segs, table, translations, allowed, refmap, hand_grouped(segs))
+    i = layout.index[sid]
+    in_place = layout.slot[i] // 2 - 1
+    if i in layout.fixed:
+        return in_place, in_place
+    need = list(layout.need)
+    low, high = in_place, in_place + limit
+    while low < high:                                   # maior n que ainda cabe
+        n = (low + high + 1) // 2
+        need[i] = 2 * n + 2
+        if need[i] <= layout.slot[i] or layout.find_window(i, need):
+            low = n
+        else:
+            high = n - 1
+    return in_place, low
 
 
 def _fix_sum(target, pos, sid, base, segs, index, new_of, subfiles):

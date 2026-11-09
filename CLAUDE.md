@@ -21,6 +21,7 @@ python3 tools/hm.py info | cue | extract | dump | check | font | build
 python3 tools/hm.py patch VERSÃO      # build + pacote de lançamento em build/release/
 python3 tools/hm.py find "texto em inglês"
 python3 tools/hm.py scan              # textos do jogo fora da extração (deve dar OK)
+python3 tools/hm.py refs [ID]         # mapa de referências; com ID: referências e limite do texto
 python3 tools/hm.py peek <subarquivo> <offset>
 python3 -m unittest discover tests
 ```
@@ -38,9 +39,10 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - `build` gera `build/HARVESTMOON-PTBR.bin`: grava as falas no lugar e recalcula EDC/ECC só dos setores alterados
 - `tools/hmbtn/rules.py`: regras de uma fala traduzida (códigos, caracteres, linhas, páginas); usadas por `check` e `build`
 - `docs/05-guia-de-traducao.md`: regras, estilo e glossário (fonte única); `prompts/agente-tradutor.md`: prompt do agente tradutor, aponta para o guia. Termos novos aprovados na revisão vão para o glossário do guia
-- `docs/06-textos-do-executavel.md` + `tools/hmbtn/exetext.py`: 387 textos do executável, traduzidos NO LUGAR (nunca maiores que o original, completados com espaços); ids `exe-ENDEREÇO`; referências só parcialmente mapeadas
+- `docs/06-textos-do-executavel.md` + `tools/hmbtn/exetext.py`: 387 textos do executável, traduzidos NO LUGAR por padrão (completados com espaços); ids `exe-ENDEREÇO`
 - Remendos de código: `exetext.patches` (dias da semana e estações lidos byte a byte, texto das cerimônias) e `exetext.OVERLAY_PATCHES` (calendário "Ano 1", data do diário); `tools/hmbtn/mips.py` monta o código e, nos testes, roda as funções num interpretador mínimo
 - Textos do executável que precisam crescer: grupos reorganizados em `exetext.GROUPS` (vizinhos regravados em sequência, referências conhecidas corrigidas, mesmo número de terminadores; lojas em `somados`: o overlay 11 monta endereço - `BASE_DELTA` (0x2C3A), invisível numa busca direta); `exetext.plan` é usado por `check` e `build`. Não há espaço livre comprovado no executável
+- `tools/hmbtn/refs.py`: mapa automático de referências (addiu/tabela; `build/refs.json`, fora do git); com ele, `exetext.plan` remaneja sozinho um texto que não cabe (`_Layout`: janela de vizinhos com referências conhecidas) e recalcula TODAS as referências de textos que andaram. O teste `test_current_translations_keep_every_reference` refaz a conta de cada referência
 - `build --translation PASTA`: gera a imagem a partir de outra pasta (útil se o lote em andamento do agente tiver erro)
 - Testes de tradução no emulador: usar save do memory card (diário), nunca save state (congela RAM/VRAM antigas)
 - `tables/personagens.tsv` + `tools/hmbtn/speakers.py`: retrato → personagem/gênero; o `dump` grava `speakers` (quem fala em cada página)

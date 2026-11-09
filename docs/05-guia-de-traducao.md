@@ -165,8 +165,10 @@ Menus, comidas, itens de loja, sementes e mensagens de memory card ficam no exec
 `build/script/exe.json` (`{id, max, en}`) e a tradução em `translation/exe.json`
 (`{"exe-800535E6": "Total\nenviado"}`).
 
-- **Nunca mais longo que `max`**, contando cada caractere, espaço, `\n` e código como 1.
-  Mais curto pode: o jogo completa com espaços.
+- **Não passe de `max`**, contando cada caractere, espaço, `\n` e código como 1. Mais
+  curto pode: o jogo completa com espaços. Exceção: `python3 tools/hm.py refs ID` mostra
+  se o texto pode crescer por remanejamento e até quanto; a largura da janela na tela
+  continua valendo e precisa ser conferida no jogo.
 - Prefira um sinônimo que caiba ("Free" → "Vago"). Se for preciso abreviar, use ponto
   ("Sem. de nabo") e abrevie **sempre do mesmo jeito**.
 - Opções de menu e títulos alinhados (linhas que começam com espaço) mantêm o mesmo

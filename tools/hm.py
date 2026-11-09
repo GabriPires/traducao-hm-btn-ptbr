@@ -12,6 +12,7 @@ Uso:
     python3 tools/hm.py patch 0.1.0          # build + pacote de lançamento (.xdelta) em build/release/
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
     python3 tools/hm.py scan                 # procura textos que ainda não são extraídos
+    python3 tools/hm.py refs [exe-80054400]  # mapa de referências / limite de um texto
     python3 tools/hm.py peek 2 0x1D814       # decodifica texto a partir de uma posição
 
 A imagem original é só lida, nunca alterada.
@@ -27,7 +28,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import accents, afile, dialog, exetext, font, release, rules, scan
+from hmbtn import accents, afile, dialog, exetext, font, refs, release, rules, scan
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.speakers import Speakers
 from hmbtn.table import Table
@@ -41,6 +42,7 @@ SCRIPT = BUILD / 'script'
 TRANSLATION = ROOT / 'translation'
 OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
 RELEASE = BUILD / 'release'
+REFS = BUILD / 'refs.json'
 FONT_PREVIEW = BUILD / 'fonte.png'
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
@@ -277,9 +279,10 @@ def cmd_check(args):
     if any(p.stem == 'exe' for p in paths):
         exe_data, _, _ = read_translation_file(TRANSLATION / 'exe.json')
         subfiles = [bytearray(data) for data in load_subfiles()]
+        exe = (BUILD / 'disc' / 'SLUS_011.15').read_bytes()
         _, _, exe_errors, exe_warnings = exetext.plan(
-            (BUILD / 'disc' / 'SLUS_011.15').read_bytes(), subfiles, Table(TABLE),
-            {k: v for k, v in exe_data.items() if isinstance(v, str) and v}, allowed)
+            exe, subfiles, Table(TABLE), {k: v for k, v in exe_data.items() if isinstance(v, str) and v},
+            allowed, load_refmap(exe, subfiles))
         exe_report = (exe_errors, exe_warnings)
     checked = with_errors = with_warnings = 0
     for path in paths:
@@ -359,6 +362,16 @@ def cmd_font(args):
     print(f'Pacote da fonte: {len(package)} de {font.PACKAGE_LIMIT} bytes')
 
 
+def load_refmap(exe, subfiles):
+    """Mapa de referências dos textos do executável (build/refs.json; refeito se faltar)."""
+    refmap = refs.load(REFS)
+    if refmap is None:
+        refmap = refs.find(exe, subfiles)
+        REFS.parent.mkdir(parents=True, exist_ok=True)
+        refs.save(REFS, refmap)
+    return refmap
+
+
 def apply_exe(iso, subfiles, table, allowed, translations, errors, warnings):
     """Grava as traduções do executável (no lugar ou em grupos reorganizados).
 
@@ -369,7 +382,8 @@ def apply_exe(iso, subfiles, table, allowed, translations, errors, warnings):
         entry = disc.find('/SLUS_011.15')
         original = disc.read_file(entry)
     new = bytearray(original)
-    writes, fixes, problems, notes = exetext.plan(original, subfiles, table, translations, allowed)
+    writes, fixes, problems, notes = exetext.plan(original, subfiles, table, translations, allowed,
+                                                  load_refmap(original, subfiles))
     for entry_id, messages in sorted(problems.items()):
         errors += [f'{entry_id}: {message}' for message in messages]
     for entry_id, messages in sorted(notes.items()):
@@ -478,6 +492,63 @@ def cmd_patch(args):
     print(f'Pacote: {result["zip"].relative_to(ROOT)}')
 
 
+def describe_ref(ref):
+    where = 'exe' if ref['where'] == 'exe' else f'ov{ref["where"]:02d}'
+    if ref['kind'] == 'conflito':
+        return 'leitura ambígua (o mesmo código parece montar dois textos): não anda'
+    if ref['kind'] == 'leitura':
+        return f'{where}:0x{ref["pos"]:X} lê bytes direto do texto: não anda'
+    if ref['kind'] == 'tabela':
+        return f'{where}:0x{ref["pos"]:X} tabela (deslocamento de 16 bits)'
+    base = ref['base'] if isinstance(ref['base'], str) else f'lui 0x{ref["base"] >> 16:04X}'
+    soma = ' + 0x2C3A' if ref['delta'] else ''
+    return f'{where}:0x{ref["pos"]:X} addiu a partir de {base}{soma}'
+
+
+def cmd_refs(args):
+    """Mapa de referências dos textos do executável e quanto cada texto pode crescer."""
+    table = Table(TABLE)
+    exe = (BUILD / 'disc' / 'SLUS_011.15').read_bytes()
+    subfiles = load_subfiles()
+    ids = [exetext.entry_id(address) for address, _ in exetext.segments(exe)]
+    if not args.ids:
+        refmap = refs.find(exe, subfiles)
+        REFS.parent.mkdir(parents=True, exist_ok=True)
+        refs.save(REFS, refmap)
+        with_refs = sum(1 for sid in ids if refmap.get(sid))
+        movable = sum(1 for sid in ids if exetext.movable(refmap.get(sid, [])))
+        kinds = {}
+        for sid in ids:
+            for ref in refmap.get(sid, []):
+                kinds[ref['kind']] = kinds.get(ref['kind'], 0) + 1
+        print(f'{len(ids)} textos do executável: {with_refs} com referência conhecida, '
+              f'{movable} podem mudar de lugar')
+        print('referências: ' + ', '.join(f'{count} {kind}' for kind, count in sorted(kinds.items())))
+        print(f'Mapa: {REFS.relative_to(ROOT)}')
+        return
+    refmap = load_refmap(exe, subfiles)
+    data, _, _ = read_translation_file(TRANSLATION / 'exe.json')
+    translations = {k: v for k, v in data.items() if isinstance(v, str) and v}
+    allowed = allowed_chars(table)
+    for sid in args.ids:
+        if sid not in ids:
+            print(f'{sid}: esse texto não existe no executável')
+            continue
+        print(f'{sid}: {translations.get(sid, "(sem tradução)")!r}')
+        for ref in refmap.get(sid, []) or []:
+            print(f'  {describe_ref(ref)}')
+        if not refmap.get(sid):
+            print('  nenhuma referência conhecida: o texto não muda de lugar')
+        segs = [(exetext.entry_id(a), a, raw) for a, raw in exetext.segments(exe)]
+        if sid in exetext.hand_grouped(segs):
+            print('  está num grupo feito à mão (exetext.GROUPS): o limite é o espaço total do grupo')
+            continue
+        in_place, best = exetext.budget(exe, table, translations, allowed, refmap, sid)
+        print(f'  limite: {in_place} caractere(s) no lugar, até {best} com remanejamento')
+    print('\nO limite é de memória. A largura da janela ou da coluna na tela é outro limite: '
+          'confira no jogo.')
+
+
 def cmd_scan(args):
     """Lista textos do jogo fora do que já é extraído (falas, executável, minigames)."""
     table = Table(TABLE)
@@ -521,13 +592,16 @@ def main():
     p = sub.add_parser('patch', help='gera o pacote de lançamento (.xdelta + .cue + LEIA-ME) em build/release/')
     p.add_argument('version', help='versão do lançamento (ex.: 0.1.0)')
     sub.add_parser('scan', help='procura textos do jogo que ainda não são extraídos')
+    p = sub.add_parser('refs', help='mapa de referências dos textos do executável (build/refs.json); '
+                                    'com ids, mostra as referências e o limite de cada texto')
+    p.add_argument('ids', nargs='*', help='ids exe-ENDEREÇO')
     p = sub.add_parser('peek', help='decodifica texto a partir de uma posição')
     p.add_argument('subfile', type=int)
     p.add_argument('offset', help='posição em bytes (aceita 0x...)')
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch, 'scan': cmd_scan,
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch, 'scan': cmd_scan, 'refs': cmd_refs,
      'peek': cmd_peek}[args.command](args)
 
 

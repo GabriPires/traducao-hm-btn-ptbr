@@ -92,8 +92,9 @@ python3 tools/hm.py patch 0.1.0   # build + pacote de lançamento (.xdelta) em b
 python3 -m unittest discover tests
 ```
 
-Também há `find` (procura uma fala), `peek` (decodifica texto numa posição) e `scan`
-(procura textos do jogo que ainda não são extraídos).
+Também há `find` (procura uma fala), `peek` (decodifica texto numa posição), `scan`
+(procura textos do jogo que ainda não são extraídos) e `refs` (mostra onde o jogo guarda
+o endereço de cada texto do executável e até quanto ele pode crescer).
 Use `python3 tools/hm.py --help` para ver todos os comandos.
 
 ### Como a tradução é organizada

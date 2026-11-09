@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, rules, scan, vcdiff  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, refs, rules, scan, vcdiff  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -283,6 +283,9 @@ class ExeGroupsTest(unittest.TestCase):
         cls.subfiles = [bytearray(d) for d in afile.split(pack, afile.parse_hdt(hdt))]
         cls.table = Table(TABLE)
         cls.allowed = {t for t in cls.table.decode_map.values() if len(t) == 1}
+        cls.refmap = refs.find(cls.exe, cls.subfiles)
+        names = json.loads((ROOT / 'translation' / 'exe.json').read_text(encoding='utf-8'))
+        cls.names = {k: v for k, v in names.items() if v}
 
     def apply(self, translations):
         writes, fixes, errors, warnings = exetext.plan(self.exe, self.subfiles, self.table, translations, self.allowed)
@@ -411,6 +414,76 @@ class ExeGroupsTest(unittest.TestCase):
                                      f'{sid} em ov11:{pos:#x}')
                     found[sid] = address
             self.assertEqual(set(found), set(group['somados']))
+
+    def plan_with_refs(self, translations):
+        subfiles = [bytearray(d) for d in self.subfiles]
+        writes, fixes, errors, warnings = exetext.plan(self.exe, subfiles, self.table, translations,
+                                                       self.allowed, self.refmap)
+        exe = bytearray(self.exe)
+        for at, data in writes:
+            exe[at:at + len(data)] = data
+        for target, pos, data in fixes:
+            buffer = exe if target == 'exe' else subfiles[target]
+            buffer[pos:pos + len(data)] = data
+        return exe, subfiles, errors, warnings
+
+    def assert_refs_point_to_their_texts(self, exe, subfiles):
+        """Refaz a conta de cada referência do mapa sobre o resultado gravado."""
+        old = list(exetext.segments(self.exe))
+        new = list(exetext.segments(bytes(exe)))
+        self.assertEqual(len(old), len(new))            # mesmos textos, na mesma ordem
+        address = {exetext.entry_id(a): b for (a, _), (b, _) in zip(old, new)}
+        for sid, refs_of in self.refmap.items():
+            for ref in refs_of:
+                if ref['kind'] not in ('addiu', 'tabela'):
+                    continue
+                data = exe if ref['where'] == 'exe' else subfiles[ref['where']]
+                if ref['kind'] == 'tabela':
+                    got = exetext.TXT_BASE + struct.unpack_from('<H', data, ref['pos'])[0]
+                else:
+                    base = ref['base']
+                    base = address[base] - ref['base_delta'] if isinstance(base, str) else base
+                    low = struct.unpack_from('<I', data, ref['pos'])[0] & 0xFFFF
+                    got = (base + (low - 0x10000 if low & 0x8000 else low) + ref['delta']) & 0xFFFFFFFF
+                self.assertEqual(got, address[sid], f'{sid}: {ref}')
+
+    def test_ref_map_finds_the_known_mechanisms(self):
+        found = {(sid, ref['where'], ref['pos']) for sid, lst in self.refmap.items() for ref in lst}
+        self.assertIn(('exe-80054400', 11, 0x4C100), found)                 # endereço somado
+        self.assertIn(('exe-80054882', 11, 0x5FD18), found)                 # a partir de outro texto
+        self.assertIn(('exe-80051A94', 27, 0xCC30), found)                  # tabela do cadastro
+        for group in exetext.GROUPS:                    # tudo o que foi mapeado à mão
+            for sid, sums in group.get('somados', {}).items():
+                for target, pos, _ in sums:
+                    self.assertIn((sid, int(target[2:]), pos), found)
+        positions = {(where, pos) for _, where, pos in found}
+        self.assertNotIn(('exe', 0x2F1D2), positions)   # código que parece tabela
+        self.assertNotIn((11, 0x656B0), positions)
+
+    def test_current_translations_keep_every_reference(self):
+        exe, subfiles, errors, _ = self.plan_with_refs(self.names)
+        self.assertEqual(dict(errors), {})
+        self.assert_refs_point_to_their_texts(exe, subfiles)
+
+    def test_text_grows_by_moving_neighbours(self):
+        translations = {**self.names, 'exe-800544EC': 'Sementes de repolho'}   # usa a sobra das vizinhas
+        exe, subfiles, errors, warnings = self.plan_with_refs(translations)
+        self.assertEqual(dict(errors), {})
+        self.assertIn('remanejamento', warnings['exe-800544EC'][0])
+        self.assert_refs_point_to_their_texts(exe, subfiles)
+        texts = {exetext.entry_id(a): self.table.decode(r).rstrip()
+                 for (a, _), (_, r) in zip(exetext.segments(self.exe), exetext.segments(bytes(exe)))}
+        self.assertEqual(texts['exe-800544EC'], 'Sementes de repolho')
+
+    def test_text_without_movable_neighbours_cannot_grow(self):
+        _, _, errors, _ = self.plan_with_refs({**self.names, 'exe-80054400': 'Dinheiro'})
+        self.assertIn('remanejamento', errors['exe-80054400'][0])
+        self.assertEqual(exetext.budget(self.exe, self.table, self.names, self.allowed, self.refmap,
+                                        'exe-80054400'), (5, 5))
+        in_place, best = exetext.budget(self.exe, self.table, self.names, self.allowed, self.refmap,
+                                        'exe-800544EC')
+        self.assertEqual(in_place, 13)
+        self.assertGreaterEqual(best, len('Sementes de repolho'))
 
     def test_keyboard_grid_refs_in_the_exe(self):
         _, fixes, errors, _ = self.apply({'exe-800537A2': 'Máximo'})
