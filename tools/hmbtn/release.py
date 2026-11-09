@@ -71,8 +71,8 @@ versão americana). Este pacote contém só o patch: o jogo NÃO está incluído
 SITUAÇÃO DESTA VERSÃO
 - Prévia para testes: todos os textos estão traduzidos (falas, cartas, TV, menus,
   itens, lojas, calendário, memory card e minigames).
-- Os gráficos com texto (tela de título e alguns menus desenhados) ainda estão em
-  inglês.
+- A tela de título está traduzida. Outros textos desenhados como imagem (em
+  minigames e festivais, por exemplo) ainda podem aparecer em inglês.
 
 ARQUIVOS
 - {patch}  o patch

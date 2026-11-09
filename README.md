@@ -41,7 +41,8 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 
 As versões ficam na página **Releases** do repositório, num `.zip` com o patch
 `.xdelta`, um `.cue` e um `LEIA-ME.txt`. As versões `0.x` são prévias para testes: os
-textos estão todos traduzidos, mas os gráficos com texto ainda estão em inglês.
+textos e a tela de título estão traduzidos, mas outros textos desenhados como imagem
+ainda podem aparecer em inglês.
 
 1. Tenha sua própria cópia do jogo, na versão compatível (abaixo).
 2. Confira o checksum da sua imagem.
