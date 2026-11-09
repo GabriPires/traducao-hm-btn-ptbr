@@ -8,6 +8,7 @@ Uso:
     python3 tools/hm.py dump                 # exporta os diálogos originais para build/script/
     python3 tools/hm.py check [03 ...]       # confere as traduções contra as regras do jogo
     python3 tools/hm.py font                 # prévia da fonte com os acentos (build/fonte.png)
+    python3 tools/hm.py titulo               # prévia dos textos da tela de título (build/titulo.png)
     python3 tools/hm.py build                # aplica fonte e translation/*.json numa cópia da imagem
     python3 tools/hm.py patch 0.1.0          # build + pacote de lançamento (.xdelta) em build/release/
     python3 tools/hm.py find "Good morning"  # acha um texto nos subarquivos
@@ -28,7 +29,7 @@ import struct
 import sys
 from pathlib import Path
 
-from hmbtn import accents, afile, dialog, exetext, font, refs, release, rules, scan
+from hmbtn import accents, afile, dialog, exetext, font, refs, release, rules, scan, titlegfx
 from hmbtn.disc import Disc, patch_form1
 from hmbtn.speakers import Speakers
 from hmbtn.table import Table
@@ -44,6 +45,7 @@ OUTPUT = BUILD / 'HARVESTMOON-PTBR.bin'
 RELEASE = BUILD / 'release'
 REFS = BUILD / 'refs.json'
 FONT_PREVIEW = BUILD / 'fonte.png'
+TITLE_PREVIEW = BUILD / 'titulo.png'
 DEFAULT_ISO = Path(os.environ.get('HMBTN_ISO', ROOT / 'HARVESTMOON.iso'))
 END = 0xFFFF
 
@@ -226,7 +228,8 @@ def read_translation_file(path):
     if not isinstance(data, dict):
         return {}, ['o arquivo deve ser um objeto no formato {"id": "texto"}'], []
     for key, value in data.items():
-        pattern = {'exe': r'exe-[0-9A-F]{8}', 'overlays': r'ov\d\d-[0-9A-F]{5}'}.get(
+        pattern = {'exe': r'exe-[0-9A-F]{8}', 'overlays': r'ov\d\d-[0-9A-F]{5}',
+                   'graficos': r'gfx-[a-z0-9-]+'}.get(
             path.stem, rf'{re.escape(path.stem)}-\d{{4}}')
         if not re.fullmatch(pattern, key):
             errors.append(f'id inválido ou no arquivo errado: {key}')
@@ -284,6 +287,11 @@ def cmd_check(args):
             exe, subfiles, Table(TABLE), {k: v for k, v in exe_data.items() if isinstance(v, str) and v},
             allowed, load_refmap(exe, subfiles))
         exe_report = (exe_errors, exe_warnings)
+    gfx_report = {}
+    if any(p.stem == 'graficos' for p in paths):
+        gfx_data, _, _ = read_translation_file(TRANSLATION / 'graficos.json')
+        gfx_report = titlegfx.check(load_subfiles()[titlegfx.SUBFILE],
+                                    {k: v for k, v in gfx_data.items() if isinstance(v, str) and v})
     checked = with_errors = with_warnings = 0
     for path in paths:
         data, file_errors, file_warnings = read_translation_file(path)
@@ -293,6 +301,14 @@ def cmd_check(args):
             print(f'{path.name}: aviso: {message}')
         with_errors += bool(file_errors)
         for entry_id, text in data.items():
+            if entry_id.startswith('gfx-') and isinstance(text, str) and text:
+                checked += 1
+                if gfx_report.get(entry_id):
+                    with_errors += 1
+                    print(entry_id)
+                    for message in gfx_report[entry_id]:
+                        print(f'  ERRO: {message}')
+                continue
             if not isinstance(text, str) or not text or entry_id not in originals:
                 if isinstance(text, str) and text and re.fullmatch(r'\d\d-\d{4}|exe-[0-9A-F]{8}|ov\d\d-[0-9A-F]{5}', entry_id):
                     print(f'{entry_id}\n  ERRO: essa fala não existe no jogo')
@@ -360,6 +376,38 @@ def cmd_font(args):
     image.save(FONT_PREVIEW)
     print(f'Prévia: {FONT_PREVIEW.relative_to(ROOT)} (original à esquerda, nova à direita)')
     print(f'Pacote da fonte: {len(package)} de {font.PACKAGE_LIMIT} bytes')
+
+
+def cmd_titulo(args):
+    """Gera build/titulo.png: os textos da tela de título, original e tradução."""
+    from PIL import Image
+    data, _, _ = read_translation_file(TRANSLATION / 'graficos.json')
+    texts = {k: v for k, v in data.items() if isinstance(v, str) and v}
+    original = load_subfiles()[titlegfx.SUBFILE]
+    new = bytearray(original)
+    problems = titlegfx.check(original, texts)
+    if problems:
+        for entry_id, messages in problems.items():
+            print(f'{entry_id}: ERRO: {messages[0]}')
+        sys.exit(1)
+    titlegfx.build(new, texts)
+    before, after = titlegfx.Sheet(original), titlegfx.Sheet(new)
+    colors = [((v & 31) << 3, ((v >> 5) & 31) << 3, ((v >> 10) & 31) << 3, 255 if v else 0)
+              for v in before.palette]
+    scale, gap = 4, 4
+    blocks = sorted(titlegfx.TARGETS)
+    width = max(before.width(b) for b in blocks) * 2 + gap
+    height = len(blocks) * (titlegfx.HEIGHT + gap)
+    image = Image.new('RGBA', (width, height), (70, 120, 70, 255))
+    for row, block in enumerate(blocks):
+        for column, sheet in enumerate((before, after)):
+            rows = sheet.image(block)
+            layer = Image.new('RGBA', (len(rows[0]), len(rows)))
+            layer.putdata([colors[i] for line in rows for i in line])
+            x = column * (max(before.width(b) for b in blocks) + gap)
+            image.alpha_composite(layer, (x, row * (titlegfx.HEIGHT + gap)))
+    image.resize((width * scale, height * scale), Image.NEAREST).save(TITLE_PREVIEW)
+    print(f'Prévia: {TITLE_PREVIEW.relative_to(ROOT)} (original à esquerda, tradução à direita)')
 
 
 def load_refmap(exe, subfiles):
@@ -433,6 +481,13 @@ def cmd_build(args):
     subfiles[font.FONT_SUBFILE][:font.PACKAGE_LIMIT] = package + bytes(font.PACKAGE_LIMIT - len(package))
 
     errors, warnings = [], []
+    gfx_translations = {k: v for k, v in translations.items() if k.startswith('gfx-')}
+    for entry_id in gfx_translations:
+        del translations[entry_id]
+    for entry_id, messages in titlegfx.check(subfiles[titlegfx.SUBFILE], gfx_translations).items():
+        errors += [f'{entry_id}: {message}' for message in messages]
+    if not any(e.split(':')[0] in gfx_translations for e in errors):
+        titlegfx.build(subfiles[titlegfx.SUBFILE], gfx_translations)
     exe_translations = {k: v for k, v in translations.items() if k.startswith('exe-')}
     overlay_translations = {k: v for k, v in translations.items() if k.startswith('ov')}
     for entry_id in list(exe_translations) + list(overlay_translations):
@@ -469,8 +524,9 @@ def cmd_build(args):
     changed = patch_form1(OUTPUT, pack_entry.lba, pack, new_pack)
     changed += patch_form1(OUTPUT, exe_entry.lba, exe['original'], bytes(exe['new']))
     write_cue(OUTPUT)
-    print(f'OK: {len(translations)} falas, {len(exe_translations)} textos do executável e '
-          f'{len(overlay_translations)} dos minigames traduzidos, {changed} setores alterados')
+    print(f'OK: {len(translations)} falas, {len(exe_translations)} textos do executável, '
+          f'{len(overlay_translations)} dos minigames e {len(gfx_translations)} gráficos traduzidos, '
+          f'{changed} setores alterados')
     print(f'Imagem: {OUTPUT.relative_to(ROOT)} (+ .cue)')
 
 
@@ -586,6 +642,7 @@ def main():
     p = sub.add_parser('check', help='confere as traduções contra o original e as regras do jogo')
     p.add_argument('files', nargs='*', help='arquivos de translation/ (ex.: 03); padrão: todos')
     sub.add_parser('font', help='gera build/fonte.png com a fonte original e a nova')
+    sub.add_parser('titulo', help='gera build/titulo.png com os textos da tela de título')
     p = sub.add_parser('build', help='gera build/HARVESTMOON-PTBR.bin com a tradução e a fonte nova')
     p.add_argument('--translation', default=TRANSLATION,
                    help='pasta com as traduções (padrão: translation/)')
@@ -601,7 +658,7 @@ def main():
     p.add_argument('--chars', type=int, default=200)
     args = parser.parse_args()
     {'info': cmd_info, 'cue': cmd_cue, 'extract': cmd_extract,
-     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch, 'scan': cmd_scan, 'refs': cmd_refs,
+     'find': cmd_find, 'dump': cmd_dump, 'check': cmd_check, 'font': cmd_font, 'build': cmd_build, 'patch': cmd_patch, 'scan': cmd_scan, 'refs': cmd_refs, 'titulo': cmd_titulo,
      'peek': cmd_peek}[args.command](args)
 
 

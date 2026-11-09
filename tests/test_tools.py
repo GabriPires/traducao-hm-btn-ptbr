@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, refs, rules, scan, vcdiff  # noqa: E402
+from hmbtn import accents, afile, dialog, ecc, exetext, font, mips, refs, rules, scan, titlegfx, vcdiff  # noqa: E402
 from hmbtn.disc import Disc  # noqa: E402
 from hmbtn.speakers import Speakers  # noqa: E402
 from hmbtn.table import Table  # noqa: E402
@@ -532,6 +532,50 @@ class ScanTest(unittest.TestCase):
         self.assertTrue(scan._covered('exe', exetext.file_offset(exetext.BLOCKS[0][0])))
 
 
+@unittest.skipUnless(ISO.exists(), 'imagem do jogo ausente')
+class TitleGraphicsTest(unittest.TestCase):
+    """Textos da tela de título montados com as letras do jogo."""
+
+    @classmethod
+    def setUpClass(cls):
+        with Disc(ISO) as disc:
+            pack = disc.read_file(disc.find('/A_FILE.BIN'))
+            hdt = disc.read_file(disc.find('/A_FILE.HDT'))
+        cls.subfile = afile.split(pack, afile.parse_hdt(hdt))[titlegfx.SUBFILE]
+        cls.sheet = titlegfx.Sheet(cls.subfile)
+        cls.texts = json.loads((ROOT / 'translation' / 'graficos.json').read_text(encoding='utf-8'))
+
+    def test_every_original_image_splits_into_its_letters(self):
+        for block, (_, count) in titlegfx.TARGETS.items():
+            self.assertEqual(len(titlegfx.segments(self.sheet, block, count)), count)
+
+    def test_all_letters_and_derived_ones_have_ink(self):
+        for letter in list(titlegfx.LETTERS) + list(titlegfx.DERIVED):
+            g = titlegfx.glyph(self.sheet, letter)
+            self.assertTrue(any(self.sheet.is_core(i) for column in g.columns for i in column), letter)
+
+    def test_words_must_fit_the_original_width(self):
+        with self.assertRaises(titlegfx.TitleError):      # por isso o menu diz INICIAR
+            titlegfx.compose_fit(self.sheet, 'NOVO JOGO', 80, self.sheet.core_index(66))
+        with self.assertRaises(titlegfx.TitleError):
+            titlegfx.glyph(self.sheet, 'Q')
+        self.assertEqual(titlegfx.check(self.subfile, self.texts), {})
+
+    def test_build_changes_only_the_text_blocks(self):
+        subfile = bytearray(self.subfile)
+        titlegfx.build(subfile, self.texts)
+        after = titlegfx.Sheet(subfile)
+        self.assertLessEqual(after.end, self.sheet.end)
+        changed = [i for i, (a, b) in enumerate(zip(self.sheet.chunks, after.chunks)) if a != b]
+        self.assertEqual(changed, sorted(titlegfx.TARGETS))
+        for block, (text_id, _) in titlegfx.TARGETS.items():
+            rows, _ = titlegfx.compose_fit(self.sheet, self.texts[text_id], self.sheet.width(block),
+                                           self.sheet.core_index(block))
+            self.assertEqual(after.image(block), rows)
+        self.assertEqual(bytes(subfile[:titlegfx.PACKAGE]), self.subfile[:titlegfx.PACKAGE])
+        self.assertEqual(bytes(subfile[self.sheet.end:]), self.subfile[self.sheet.end:])
+
+
 class VcdiffTest(unittest.TestCase):
     def roundtrip(self, old, new, window=vcdiff.WINDOW):
         out = io.BytesIO()
@@ -598,7 +642,8 @@ class TranslationFilesTest(unittest.TestCase):
             data = json.loads(path.read_text(encoding='utf-8'))
             self.assertIsInstance(data, dict, path.name)
             for entry_id, text in data.items():
-                pattern = {'exe': r'^exe-[0-9A-F]{8}$', 'overlays': r'^ov\d\d-[0-9A-F]{5}$'}.get(
+                pattern = {'exe': r'^exe-[0-9A-F]{8}$', 'overlays': r'^ov\d\d-[0-9A-F]{5}$',
+                           'graficos': r'^gfx-[a-z0-9-]+$'}.get(
                     path.stem, rf'^{re.escape(path.stem)}-\d{{4}}$')
                 self.assertRegex(entry_id, pattern)
                 self.assertIsInstance(text, str, entry_id)

@@ -17,7 +17,7 @@ Também é um projeto de aprendizado de romhacking.
 ## Comandos
 
 ```sh
-python3 tools/hm.py info | cue | extract | dump | check | font | build
+python3 tools/hm.py info | cue | extract | dump | check | font | titulo | build
 python3 tools/hm.py patch VERSÃO      # build + pacote de lançamento em build/release/
 python3 tools/hm.py find "texto em inglês"
 python3 tools/hm.py scan              # textos do jogo fora da extração (deve dar OK)
@@ -48,5 +48,6 @@ Testes no emulador: abrir `build/HARVESTMOON-PTBR.cue` no DuckStation.
 - Testes de tradução no emulador: usar save do memory card (diário), nunca save state (congela RAM/VRAM antigas)
 - `tables/personagens.tsv` + `tools/hmbtn/speakers.py`: retrato → personagem/gênero; o `dump` grava `speakers` (quem fala em cada página)
 - `docs/04-fonte.md`: fonte 8x12 monoespaçada em VRAM (896,0), comprimida (RLE) no 1º pacote do subarquivo 00; `font.py` (pacotes/RLE/folha) e `accents.py` (acentos gerados no build a partir das letras do disco, nada original no git); limite 0x2000 bytes
+- `docs/08-graficos.md` + `tools/hmbtn/titlegfx.py`: textos desenhados da tela de título (subarquivo 00, pacote 0x2D1C, blocos 65–67), montados no build com as letras das próprias imagens (nada original no git); palavras em `translation/graficos.json` (ids `gfx-…`); a largura de cada imagem é fixa
 - `docs/07-patch.md` + `tools/hmbtn/vcdiff.py` (VCDIFF/.xdelta próprio, só biblioteca padrão; conferido com o Rom Patcher JS) + `release.py` (checksums da imagem original, LEIA-ME, .cue e .zip)
 - Para inspecionar RAM/VRAM: save state do DuckStation sem compressão (`SaveStateCompression = Uncompressed`); RAM e VRAM são localizadas buscando conteúdo conhecido (código do EXE, paleta de retrato)

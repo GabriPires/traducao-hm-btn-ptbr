@@ -33,7 +33,7 @@ Tradução de fã para português do Brasil de *Harvest Moon: Back to Nature* (P
 | Caixas de mensagem: falas, placas, cartas, descrições de itens, ajuda, TV (6.011 textos) | ✅ Traduzidos (5.873; os outros 138 são vazios, "Dummy" ou iguais em português) |
 | Textos fixos do executável: nomes de menus, comidas, itens de loja, memory card, dias da semana e estações (387 textos) | ✅ Traduzidos |
 | Textos dos minigames (20 textos) | ✅ Traduzidos |
-| Gráficos com texto (título, menus) | ⏳ Pendente |
+| Gráficos com texto (título, menus) | 🔨 Em andamento: tela de título traduzida |
 | Patch `.xdelta` e pacote de lançamento | ✅ Concluído |
 | Testes do início ao fim e lançamento | ⏳ Pendente |
 
@@ -86,6 +86,7 @@ python3 tools/hm.py extract   # extrai os arquivos para build/
 python3 tools/hm.py dump      # exporta os diálogos originais para build/script/
 python3 tools/hm.py check     # confere as traduções contra o original e as regras do jogo
 python3 tools/hm.py font      # prévia da fonte com os acentos em build/fonte.png
+python3 tools/hm.py titulo    # prévia dos textos da tela de título em build/titulo.png
 python3 tools/hm.py build     # gera build/HARVESTMOON-PTBR.bin (+ .cue) com a tradução
 python3 tools/hm.py patch 0.1.0   # build + pacote de lançamento (.xdelta) em build/release/
 
@@ -123,8 +124,8 @@ tools/hmbtn/       biblioteca: imagem de disco, EDC/ECC, pacote A_FILE, tabela d
                    diálogos, regras da tradução, fonte e acentos, patch VCDIFF
 tables/hmbtn.tbl   tabela de caracteres do jogo
 tables/personagens.tsv  quem é cada retrato (personagem e gênero)
-translation/       a tradução: um JSON por subarquivo de diálogos, exe.json (executável)
-                   e overlays.json (minigames)
+translation/       a tradução: um JSON por subarquivo de diálogos, exe.json (executável),
+                   overlays.json (minigames) e graficos.json (textos desenhados)
 prompts/           instruções para agentes de IA que ajudam na tradução
 docs/              documentação técnica
 tests/             testes automatizados
@@ -144,6 +145,8 @@ tests/             testes automatizados
    itens e minigames, como o jogo os acha e por que são traduzidos no mesmo tamanho
 7. [O patch e o pacote de lançamento](docs/07-patch.md): o formato VCDIFF (`.xdelta`),
    como o patch é gerado e conferido
+8. [Gráficos com texto](docs/08-graficos.md): a tela de título, os pacotes de imagem e
+   como as palavras são montadas com as letras do jogo
 
 ## Licença
 
